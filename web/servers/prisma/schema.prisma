@@ -13,3 +13,72 @@ datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(PEGAWAI)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  PEGAWAI
+  ADMIN
+}
+
+model Node {
+  id        String   @id @default(uuid())
+  name      String
+  serial    String   @unique
+  status    StatusNode @default(OFFLINE)
+  cameras   Camera[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum StatusNode {
+  ONLINE
+  OFFLINE
+}
+
+model Camera {
+  id        String   @id @default(uuid())
+  nodeId    String
+  name      String
+  url       String   @unique
+  status    StatusCamera @default(INACTIVE)
+  logs      CameraLog[]
+  node      Node     @relation(fields: [nodeId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum StatusCamera {
+  ACTIVE
+  INACTIVE
+}
+
+model CameraLog {
+  id        String   @id @default(uuid())
+  cameraId  String
+  imageUrl  String
+  grade     MushroomGrade @default(UNKNOWN)
+  camera    Camera   @relation(fields: [cameraId], references: [id])
+  timestamp DateTime @default(now())
+}
+
+enum MushroomGrade {
+  A
+  B
+  UNKNOWN
+}
+
+model MushroomSorted {
+  id        String   @id @default(uuid())
+  grade     MushroomGrade @default(UNKNOWN)
+  quantity  Int
+  timestamp DateTime @default(now())
+}
