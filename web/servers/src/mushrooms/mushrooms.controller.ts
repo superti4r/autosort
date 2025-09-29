@@ -1,7 +1,12 @@
-import { Controller, Get, Post, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, UseGuards } from '@nestjs/common';
 import { MushroomsService } from './mushrooms.service';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guards';
+import { RolesGuard } from '../common/guards/roles.guards';
+import { Roles } from '../common/decorators/roles.decorators';
+import { Role } from '@prisma/client';
 
 @Controller('mushrooms')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class MushroomsController {
   constructor(private readonly mushrooms: MushroomsService) {}
 
@@ -16,6 +21,7 @@ export class MushroomsController {
   }
 
   @Get('summary')
+  @Roles(Role.ADMIN)
   summary() {
     return this.mushrooms.summary();
   }
