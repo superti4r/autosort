@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "./generated"
@@ -22,6 +16,7 @@ model User {
   role      Role     @default(PEGAWAI)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  mushrooms MushroomSorted[]
 }
 
 enum Role {
@@ -30,55 +25,64 @@ enum Role {
 }
 
 model Node {
-  id        String   @id @default(uuid())
-  name      String
-  serial    String   @unique
-  status    StatusNode @default(OFFLINE)
-  cameras   Camera[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String      @id @default(uuid())
+  name        String
+  serial      String      @unique
+  location    String?
+  status      StatusNode  @default(OFFLINE)
+  cameras     Camera[]
+  mushrooms   MushroomSorted[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }
 
 enum StatusNode {
   ONLINE
   OFFLINE
+  MAINTENANCE
 }
 
 model Camera {
-  id        String   @id @default(uuid())
+  id        String       @id @default(uuid())
   nodeId    String
   name      String
-  url       String   @unique
+  url       String       @unique
   status    StatusCamera @default(INACTIVE)
   logs      CameraLog[]
-  node      Node     @relation(fields: [nodeId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  node      Node         @relation(fields: [nodeId], references: [id])
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
 }
 
 enum StatusCamera {
   ACTIVE
   INACTIVE
+  ERROR
 }
 
 model CameraLog {
-  id        String   @id @default(uuid())
-  cameraId  String
-  imageUrl  String
-  grade     MushroomGrade @default(UNKNOWN)
-  camera    Camera   @relation(fields: [cameraId], references: [id])
-  timestamp DateTime @default(now())
+  id         String         @id @default(uuid())
+  cameraId   String
+  imageUrl   String
+  grade      MushroomGrade  @default(UNKNOWN)
+  confidence Float?
+  camera     Camera         @relation(fields: [cameraId], references: [id])
+  createdAt  DateTime       @default(now())
+}
+
+model MushroomSorted {
+  id         String         @id @default(uuid())
+  grade      MushroomGrade  @default(UNKNOWN)
+  quantity   Int
+  createdAt  DateTime       @default(now())
+  nodeId     String?
+  node       Node?          @relation(fields: [nodeId], references: [id])
+  createdBy  String?
+  user       User?          @relation(fields: [createdBy], references: [id])
 }
 
 enum MushroomGrade {
   A
   B
   UNKNOWN
-}
-
-model MushroomSorted {
-  id        String   @id @default(uuid())
-  grade     MushroomGrade @default(UNKNOWN)
-  quantity  Int
-  timestamp DateTime @default(now())
 }
