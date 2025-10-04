@@ -10,14 +10,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
+
     public $incrementing = false;
     protected $keyType = 'string';
 
-    /**
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'email',
@@ -25,17 +22,13 @@ class User extends Authenticatable
         'profile_photo_path',
     ];
 
-    /**
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
-    /**
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -44,7 +37,7 @@ class User extends Authenticatable
         ];
     }
 
-   protected static function booted()
+    protected static function booted()
     {
         static::creating(function ($model) {
             if (! $model->getKey()) {
