@@ -6,7 +6,6 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use App\Http\Enum\UserRole;
 
 class DatabaseSeeder extends Seeder
 {
@@ -22,7 +21,6 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Bachtiar Dwi Pramudi',
                 'password' => Hash::make('123123'),
                 'email_verified_at' => now(),
-                'role' => UserRole::DEVELOPER->value,
             ]
         );
     }

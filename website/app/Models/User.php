@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Http\Enum\UserRole;
 use Illuminate\Support\Str;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -24,7 +23,6 @@ class User extends Authenticatable
         'email',
         'password',
         'profile_photo_path',
-        'role',
     ];
 
     /**
@@ -43,7 +41,6 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'role' => UserRole::class,
         ];
     }
 
