@@ -58,51 +58,56 @@ export function DashboardProfileMenu({
             .toUpperCase();
     }, [user?.name]);
 
-    if (variant === 'summary') {
-        return (
-            <div
-                className={cn(
-                    'flex w-full items-center gap-3 rounded-[2.25rem] border border-border/70 bg-background/85 px-4 py-3 shadow-sm shadow-primary/10 backdrop-blur',
-                    className,
-                )}
-            >
-                <span className="grid size-12 place-items-center rounded-full bg-primary/15 text-primary">
-                    {user?.avatar ? (
-                        <img src={user.avatar} alt={user?.name ?? 'User avatar'} className="size-full rounded-full object-cover" />
-                    ) : (
-                        <UserRound className="size-5" />
-                    )}
-                </span>
-                <div className="min-w-0">
-                    <p className="truncate text-base font-semibold text-foreground">{user?.name ?? 'Pengguna'}</p>
-                    <p className="truncate text-sm text-muted-foreground">{user?.email ?? 'akun@contoh.com'}</p>
-                </div>
-            </div>
-        );
-    }
+    const isSummary = variant === 'summary';
 
     return (
-        <div ref={containerRef} className={cn('relative inline-flex', className)}>
+        <div
+            ref={containerRef}
+            className={cn('relative', isSummary ? 'inline-flex w-full' : 'inline-flex', className)}
+        >
             <button
                 type="button"
                 onClick={(event) => {
                     event.stopPropagation();
                     setOpen((prev) => !prev);
                 }}
-                className="inline-flex items-center gap-3 rounded-full border border-border/70 bg-background/85 px-1.5 py-1.5 text-left transition hover:border-primary/50 hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:outline-none"
+                className={cn(
+                    'inline-flex items-center text-left transition hover:border-primary/50 hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+                    isSummary
+                        ? 'w-full gap-3 rounded-[2.25rem] border border-border/70 bg-background/85 px-4 py-3 shadow-sm shadow-primary/10 backdrop-blur'
+                        : 'gap-3 rounded-full border border-border/70 bg-background/85 px-1.5 py-1.5'
+                )}
                 aria-haspopup="menu"
                 aria-expanded={open}
             >
-                <span className="grid size-11 place-items-center rounded-full border border-border/60 bg-primary/12 text-sm font-semibold text-primary uppercase">
+                <span
+                    className={cn(
+                        'grid place-items-center',
+                        isSummary
+                            ? 'size-12 rounded-full bg-primary/15 text-primary'
+                            : 'size-11 rounded-full border border-border/60 bg-primary/12 text-sm font-semibold uppercase text-primary'
+                    )}
+                >
                     {user?.avatar ? (
                         <img src={user.avatar} alt={user?.name ?? 'User avatar'} className="size-full rounded-full object-cover" />
+                    ) : isSummary ? (
+                        <UserRound className="size-5" />
                     ) : (
                         initials
                     )}
                 </span>
-                <div className="hidden min-w-[8rem] text-sm font-semibold text-foreground sm:flex sm:flex-col sm:pr-1">
-                    <span className="truncate">{user?.name ?? 'Pengguna'}</span>
-                    <span className="text-xs font-normal text-muted-foreground">{user?.email ?? 'akun@contoh.com'}</span>
+                <div
+                    className={cn(
+                        'min-w-0 text-sm font-semibold text-foreground',
+                        isSummary ? 'flex flex-col' : 'hidden sm:flex sm:flex-col sm:pr-1'
+                    )}
+                >
+                    <span className={cn('truncate', isSummary ? 'text-base font-semibold' : undefined)}>
+                        {user?.name ?? 'Pengguna'}
+                    </span>
+                    <span className={cn('text-xs font-normal text-muted-foreground', isSummary ? 'text-sm font-normal text-muted-foreground' : undefined)}>
+                        {user?.email ?? 'akun@contoh.com'}
+                    </span>
                 </div>
             </button>
 
