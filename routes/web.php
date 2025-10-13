@@ -19,3 +19,7 @@ Route::get('/reset-password/{token}', function (string $token) {
         'email' => request('email'),
     ]);
 })->name('password.reset');
+
+Route::get('/dashboard', function () {
+    return Inertia::render('dashboard');
+})->name('dashboard');
