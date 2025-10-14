@@ -4,6 +4,7 @@ import * as React from 'react';
 import { cn } from '../lib/utils';
 
 import LogoutController from '@/actions/App/Http/Controllers/Auth/LogoutController';
+import UserProfileController from '@/actions/App/Http/Controllers/Pages/UserProfileController';
 
 type DashboardProfileMenuProps = {
     user?: {
@@ -11,21 +12,18 @@ type DashboardProfileMenuProps = {
         email?: string | null;
         avatar?: string | null;
     };
-    settingsHref?: string;
     className?: string;
     variant?: 'button' | 'summary';
 };
 
-export function DashboardProfileMenu({ user, settingsHref = '/settings', className, variant = 'button' }: DashboardProfileMenuProps) {
+export function DashboardProfileMenu({ user, className, variant = 'button' }: DashboardProfileMenuProps) {
     const [open, setOpen] = React.useState(false);
     const containerRef = React.useRef<HTMLDivElement | null>(null);
     const menuRef = React.useRef<HTMLDivElement | null>(null);
 
     React.useEffect(() => {
         const handleClick = (event: MouseEvent) => {
-            if (!containerRef.current?.contains(event.target as Node)) {
-                setOpen(false);
-            }
+            if (!containerRef.current?.contains(event.target as Node)) setOpen(false);
         };
         const handleKey = (event: KeyboardEvent) => {
             if (event.key === 'Escape') setOpen(false);
@@ -53,16 +51,20 @@ export function DashboardProfileMenu({ user, settingsHref = '/settings', classNa
     const isSummary = variant === 'summary';
 
     const handleLogout = () => {
-        router.post(LogoutController.__invoke().url);
+        router.post(
+            LogoutController.__invoke().url,
+            {},
+            {
+                preserveScroll: true,
+            },
+        );
         setOpen(false);
     };
 
     React.useEffect(() => {
         if (!open && menuRef.current) {
             const active = document.activeElement as HTMLElement | null;
-            if (active && menuRef.current.contains(active)) {
-                active.blur();
-            }
+            if (active && menuRef.current.contains(active)) active.blur();
         }
     }, [open]);
 
@@ -99,6 +101,7 @@ export function DashboardProfileMenu({ user, settingsHref = '/settings', classNa
                         initials
                     )}
                 </span>
+
                 <div
                     className={cn(
                         'min-w-0 text-sm font-semibold text-foreground',
@@ -118,13 +121,13 @@ export function DashboardProfileMenu({ user, settingsHref = '/settings', classNa
             </button>
 
             <div
+                ref={menuRef}
+                role="menu"
+                aria-hidden={!open}
                 className={cn(
                     'absolute top-[calc(100%+0.75rem)] right-0 w-56 overflow-hidden rounded-[1.5rem] border border-border/70 bg-card/95 p-2 text-sm shadow-xl ring-1 shadow-primary/10 ring-border/60 transition-all duration-200 ease-out',
                     open ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-1 opacity-0',
                 )}
-                ref={menuRef}
-                role="menu"
-                aria-hidden={!open}
             >
                 <div className="flex items-center gap-3 rounded-[1.25rem] border border-border/60 bg-background/70 px-3 py-3">
                     <span className="grid size-10 place-items-center rounded-[1.25rem] bg-primary/15 text-primary">
@@ -138,13 +141,13 @@ export function DashboardProfileMenu({ user, settingsHref = '/settings', classNa
 
                 <div className="mt-2 space-y-1">
                     <Link
-                        href={settingsHref}
+                        href={UserProfileController.show().url}
                         className="flex items-center gap-3 rounded-[1.25rem] px-3 py-2.5 text-muted-foreground transition hover:bg-primary/10 hover:text-foreground"
                         role="menuitem"
                         onClick={() => setOpen(false)}
                     >
                         <Settings className="size-4" />
-                        Pengaturan akun
+                        Profil Saya
                     </Link>
 
                     <button
