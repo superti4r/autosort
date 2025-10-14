@@ -3,10 +3,14 @@ import { ArrowLeft, ArrowRight, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import type { FormEvent } from 'react';
 import { useState } from 'react';
 import type { AuthMediaSlide } from '../../components/auth-media';
+import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import AuthLayout from '../../layouts/auth-layouts';
+
+import LoginController from '@/actions/App/Http/Controllers/Auth/LoginController';
+import ResetPasswordController from '@/actions/App/Http/Controllers/Auth/ResetPasswordController';
 
 type ResetPasswordForm = {
     token: string;
@@ -54,13 +58,14 @@ export default function ResetPassword({ token, email = '' }: ResetPasswordPagePr
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-
-        post('/reset-password', {
+        post(ResetPasswordController.store().url, {
             onSuccess: () => {
                 reset('password', 'password_confirmation');
             },
         });
     };
+
+    const errorMessages = Object.values(errors).filter(Boolean);
 
     return (
         <>
@@ -68,6 +73,23 @@ export default function ResetPassword({ token, email = '' }: ResetPasswordPagePr
 
             <AuthLayout title="Atur ulang akses" slides={slides} carouselInterval={6200}>
                 <form onSubmit={handleSubmit} className="space-y-8">
+                    {errorMessages.length ? (
+                        <Alert variant="destructive">
+                            <AlertTitle>Terjadi kesalahan</AlertTitle>
+                            <AlertDescription>
+                                {errorMessages.length === 1 ? (
+                                    errorMessages[0]
+                                ) : (
+                                    <ul className="list-disc space-y-1 pl-4 text-left">
+                                        {errorMessages.map((message) => (
+                                            <li key={message}>{message}</li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </AlertDescription>
+                        </Alert>
+                    ) : null}
+
                     <div className="space-y-6">
                         <div className="space-y-3">
                             <Label htmlFor="email" className="flex items-center gap-2 text-sm tracking-[0.22em] text-muted-foreground/80 uppercase">
@@ -83,7 +105,6 @@ export default function ResetPassword({ token, email = '' }: ResetPasswordPagePr
                                 disabled
                                 className="cursor-not-allowed opacity-70"
                             />
-                            {errors.email ? <p className="text-sm font-medium text-destructive">{errors.email}</p> : null}
                         </div>
 
                         <div className="space-y-3">
@@ -114,7 +135,6 @@ export default function ResetPassword({ token, email = '' }: ResetPasswordPagePr
                                     {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                                 </button>
                             </div>
-                            {errors.password ? <p className="text-sm font-medium text-destructive">{errors.password}</p> : null}
                         </div>
 
                         <div className="space-y-3">
@@ -145,17 +165,18 @@ export default function ResetPassword({ token, email = '' }: ResetPasswordPagePr
                                     {showConfirmation ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                                 </button>
                             </div>
-                            {errors.password_confirmation ? (
-                                <p className="text-sm font-medium text-destructive">{errors.password_confirmation}</p>
-                            ) : null}
                         </div>
                     </div>
 
                     <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
-                        <Link href="/login" className="inline-flex items-center gap-2 font-medium text-primary transition hover:text-primary/80">
+                        <Link
+                            href={LoginController.show().url}
+                            className="inline-flex items-center gap-2 font-medium text-primary transition hover:text-primary/80"
+                        >
                             <ArrowLeft className="size-4" />
                             Kembali ke login
                         </Link>
+                        <span className="text-muted-foreground/80">Pastikan kata sandi baru Anda aman dan unik</span>
                     </div>
 
                     <Button type="submit" disabled={processing} className="w-full">

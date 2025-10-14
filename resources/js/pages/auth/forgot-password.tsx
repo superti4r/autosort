@@ -2,10 +2,14 @@ import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { ArrowLeft, ArrowRight, Mail } from 'lucide-react';
 import type { FormEvent } from 'react';
 import type { AuthMediaSlide } from '../../components/auth-media';
+import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import AuthLayout from '../../layouts/auth-layouts';
+
+import ForgotPasswordController from '@/actions/App/Http/Controllers/Auth/ForgotPasswordController';
+import LoginController from '@/actions/App/Http/Controllers/Auth/LoginController';
 
 type ForgotPasswordForm = {
     email: string;
@@ -45,9 +49,10 @@ export default function ForgotPassword() {
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-
-        post('/forgot-password');
+        post(ForgotPasswordController.store().url);
     };
+
+    const errorMessages = Object.values(errors).filter(Boolean);
 
     return (
         <>
@@ -55,12 +60,37 @@ export default function ForgotPassword() {
 
             <AuthLayout title="Lupa Kata Sandi" slides={slides} carouselInterval={6500}>
                 <form onSubmit={handleSubmit} className="space-y-8">
+                    {status ? (
+                        <Alert variant="success">
+                            <AlertTitle>Berhasil</AlertTitle>
+                            <AlertDescription>{status}</AlertDescription>
+                        </Alert>
+                    ) : null}
+
+                    {errorMessages.length ? (
+                        <Alert variant="destructive">
+                            <AlertTitle>Terjadi kesalahan</AlertTitle>
+                            <AlertDescription>
+                                {errorMessages.length === 1 ? (
+                                    errorMessages[0]
+                                ) : (
+                                    <ul className="list-disc space-y-1 pl-4 text-left">
+                                        {errorMessages.map((message) => (
+                                            <li key={message}>{message}</li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </AlertDescription>
+                        </Alert>
+                    ) : null}
+
                     <div className="space-y-6">
                         <div className="space-y-3">
                             <Label htmlFor="email" className="flex items-center gap-2 text-sm tracking-[0.22em] text-muted-foreground/80 uppercase">
                                 <Mail className="size-4" />
                                 Email terdaftar
                             </Label>
+
                             <Input
                                 id="email"
                                 type="email"
@@ -70,16 +100,14 @@ export default function ForgotPassword() {
                                 onChange={(event) => setData('email', event.target.value)}
                                 placeholder="Masukkan email anda"
                             />
-                            {errors.email ? <p className="text-sm font-medium text-destructive">{errors.email}</p> : null}
                         </div>
-
-                        {status ? (
-                            <div className="rounded-[1.5rem] border border-primary/40 bg-primary/10 px-5 py-4 text-sm text-primary">{status}</div>
-                        ) : null}
                     </div>
 
                     <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
-                        <Link href="/login" className="inline-flex items-center gap-2 font-medium text-primary transition hover:text-primary/80">
+                        <Link
+                            href={LoginController.show().url}
+                            className="inline-flex items-center gap-2 font-medium text-primary transition hover:text-primary/80"
+                        >
                             <ArrowLeft className="size-4" />
                             Kembali ke login
                         </Link>

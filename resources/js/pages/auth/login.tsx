@@ -1,18 +1,26 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { ArrowRight, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import type { FormEvent } from 'react';
 import { useState } from 'react';
 import type { AuthMediaSlide } from '../../components/auth-media';
+import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
 import { Button } from '../../components/ui/button';
 import { Checkbox } from '../../components/ui/checkbox';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import AuthLayout from '../../layouts/auth-layouts';
 
+import ForgotPasswordController from '@/actions/App/Http/Controllers/Auth/ForgotPasswordController';
+import LoginController from '@/actions/App/Http/Controllers/Auth/LoginController';
+
 type LoginForm = {
     email: string;
     password: string;
     remember: boolean;
+};
+
+type LoginPageProps = {
+    status?: string;
 };
 
 const slides: AuthMediaSlide[] = [
@@ -38,6 +46,7 @@ const slides: AuthMediaSlide[] = [
 
 export default function Login() {
     const [showPassword, setShowPassword] = useState(false);
+    const { status } = usePage<LoginPageProps>().props;
 
     const { data, setData, post, processing, errors, reset } = useForm<LoginForm>({
         email: '',
@@ -48,10 +57,12 @@ export default function Login() {
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        post('/login', {
+        post(LoginController.store().url, {
             onFinish: () => reset('password'),
         });
     };
+
+    const errorMessages = Object.values(errors).filter(Boolean);
 
     return (
         <>
@@ -59,6 +70,30 @@ export default function Login() {
 
             <AuthLayout title="IoT Control Panel" slides={slides} carouselInterval={6000}>
                 <form onSubmit={handleSubmit} className="space-y-8">
+                    {status ? (
+                        <Alert variant="success">
+                            <AlertTitle>Berhasil</AlertTitle>
+                            <AlertDescription>{status}</AlertDescription>
+                        </Alert>
+                    ) : null}
+
+                    {errorMessages.length ? (
+                        <Alert variant="destructive">
+                            <AlertTitle>Terjadi kesalahan</AlertTitle>
+                            <AlertDescription>
+                                {errorMessages.length === 1 ? (
+                                    errorMessages[0]
+                                ) : (
+                                    <ul className="list-disc space-y-1 pl-4 text-left">
+                                        {errorMessages.map((message) => (
+                                            <li key={message}>{message}</li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </AlertDescription>
+                        </Alert>
+                    ) : null}
+
                     <div className="space-y-6">
                         <div className="space-y-3">
                             <Label htmlFor="email" className="flex items-center gap-2 text-sm tracking-[0.22em] text-muted-foreground/80 uppercase">
@@ -74,7 +109,6 @@ export default function Login() {
                                 onChange={(event) => setData('email', event.target.value)}
                                 placeholder="Masukkan email anda"
                             />
-                            {errors.email ? <p className="text-sm font-medium text-destructive">{errors.email}</p> : null}
                         </div>
 
                         <div className="space-y-3">
@@ -105,7 +139,6 @@ export default function Login() {
                                     {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                                 </button>
                             </div>
-                            {errors.password ? <p className="text-sm font-medium text-destructive">{errors.password}</p> : null}
                         </div>
                     </div>
 
@@ -114,7 +147,7 @@ export default function Login() {
                             <Checkbox checked={data.remember} onChange={(event) => setData('remember', event.target.checked)} />
                             <span>Ingat saya</span>
                         </label>
-                        <Link href="/forgot-password" className="font-medium text-primary transition hover:text-primary/80">
+                        <Link href={ForgotPasswordController.show().url} className="font-medium text-primary transition hover:text-primary/80">
                             Lupa kata sandi?
                         </Link>
                     </div>

@@ -1,25 +1,26 @@
 <?php
 
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\Pages\DashboardController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 Route::redirect('/', '/login');
 
-Route::get('/login', function () {
-    return Inertia::render('auth/login');
-})->name('login');
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [LoginController::class, 'show'])->name('login');
+    Route::post('/login', [LoginController::class, 'store'])->name('login.attempt');
 
-Route::get('/forgot-password', function () {
-    return Inertia::render('auth/forgot-password');
-})->name('password.request');
+    Route::get('/forgot-password', [ForgotPasswordController::class, 'show'])->name('password.request');
+    Route::post('/forgot-password', [ForgotPasswordController::class, 'store'])->name('password.email');
 
-Route::get('/reset-password/{token}', function (string $token) {
-    return Inertia::render('auth/reset-password', [
-        'token' => $token,
-        'email' => request('email'),
-    ]);
-})->name('password.reset');
+    Route::get('/reset-password/{token}', [ResetPasswordController::class, 'show'])->name('password.reset');
+    Route::post('/reset-password', [ResetPasswordController::class, 'store'])->name('password.update');
+});
 
-Route::get('/dashboard', function () {
-    return Inertia::render('dashboard');
-})->name('dashboard');
+Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'show'])->name('dashboard');
+    Route::post('/logout', [LogoutController::class, '__invoke'])->name('logout');
+});
