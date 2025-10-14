@@ -1,4 +1,3 @@
-import UserProfileController from '@/actions/App/Http/Controllers/Pages/UserProfileController';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { Eye, EyeOff, Lock } from 'lucide-react';
 import type { FormEvent } from 'react';
@@ -9,6 +8,8 @@ import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { DashboardLayout } from '../layouts/dashboard-layouts';
 import type { SharedData } from '../types';
+
+import UserProfileController from '@/actions/App/Http/Controllers/Pages/UserProfileController';
 
 type ProfileUser = {
     id: number;
