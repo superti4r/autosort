@@ -5,6 +5,8 @@ import { DashboardHeader } from '../components/header';
 import type { DashboardNavigationItem } from '../components/navigation';
 import type { SharedData, User } from '../types';
 
+import DashboardController from '@/actions/App/Http/Controllers/Pages/DashboardController';
+
 type DashboardLayoutProps = PropsWithChildren<{
     title?: string;
     navigation?: DashboardNavigationItem[];
@@ -13,10 +15,7 @@ type DashboardLayoutProps = PropsWithChildren<{
 }>;
 
 const defaultNavigation: DashboardNavigationItem[] = [
-    { label: 'Overview', href: '/dashboard' },
-    { label: 'Devices', href: '/devices' },
-    { label: 'Automations', href: '/automations' },
-    { label: 'Reports', href: '/reports' },
+    { label: 'Overview', href: DashboardController.show().url },
 ];
 
 export function DashboardLayout({
