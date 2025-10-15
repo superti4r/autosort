@@ -30,32 +30,6 @@ export default function Dashboard() {
                             </Button>
                         </div>
                     </section>
-
-                    <section className="space-y-6">
-                        <header className="space-y-1.5">
-                            <h3 className="text-lg font-semibold text-foreground sm:text-xl">Statistik Singkat</h3>
-                            <p className="text-sm leading-relaxed text-muted-foreground">
-                                Ringkasan performa dan status perangkat Anda (akan tersedia pada versi berikutnya).
-                            </p>
-                        </header>
-
-                        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                            <div className="rounded-2xl border border-border/70 bg-card/80 p-6 shadow-sm">
-                                <p className="text-sm text-muted-foreground">Perangkat aktif</p>
-                                <p className="mt-2 text-2xl font-semibold text-foreground">12</p>
-                            </div>
-
-                            <div className="rounded-2xl border border-border/70 bg-card/80 p-6 shadow-sm">
-                                <p className="text-sm text-muted-foreground">Automations berjalan</p>
-                                <p className="mt-2 text-2xl font-semibold text-foreground">5</p>
-                            </div>
-
-                            <div className="rounded-2xl border border-border/70 bg-card/80 p-6 shadow-sm">
-                                <p className="text-sm text-muted-foreground">Log per hari</p>
-                                <p className="mt-2 text-2xl font-semibold text-foreground">142</p>
-                            </div>
-                        </div>
-                    </section>
                 </div>
             </DashboardLayout>
         </>
