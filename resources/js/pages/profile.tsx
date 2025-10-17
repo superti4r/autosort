@@ -1,5 +1,5 @@
 import { Head, useForm, usePage } from '@inertiajs/react';
-import { Eye, EyeOff, Lock } from 'lucide-react';
+import { Eye, EyeOff, Lock, User } from 'lucide-react';
 import type { FormEvent } from 'react';
 import { useEffect, useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert';
@@ -99,7 +99,10 @@ export default function ProfilePage() {
                 <form onSubmit={handleSubmit} className="mt-8 space-y-12">
                     <section className="space-y-6">
                         <header className="space-y-1.5">
-                            <h3 className="text-lg font-semibold text-foreground sm:text-xl">Informasi Profil</h3>
+                            <h3 className="flex items-center gap-2 text-lg font-semibold text-foreground sm:text-xl">
+                                <User className="size-5 text-primary" />
+                                Informasi Pengguna
+                            </h3>
                             <p className="text-sm leading-relaxed text-muted-foreground">
                                 Perbarui identitas dasar Anda yang digunakan dalam laporan dan notifikasi.
                             </p>
