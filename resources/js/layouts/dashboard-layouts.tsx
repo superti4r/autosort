@@ -63,6 +63,7 @@ export function DashboardLayout({ title, navigation = defaultNavigation, headerS
                     </div>
                 </main>
             </div>
+            <div id="modal-root" />
         </div>
     );
 }

@@ -1,36 +1,116 @@
-import { Head } from '@inertiajs/react';
-import { ArrowRightCircle } from 'lucide-react';
-import { Button } from '../components/ui/button';
+import { Head, usePage } from '@inertiajs/react';
+import { useState } from 'react';
+import { DataTable } from '../components/data-table';
+import DataTableLayout from '../components/data-table-layout';
+import DataTablePagination from '../components/data-table-pagination';
+import type { PaginationLinks } from '../components/data-table-types';
+import { ModalConfirm } from '../components/modals/modal-confirm';
+import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert';
+import { useUserManageTable, type UserTableRecord } from '../features/users/use-user-manage-table';
 import { DashboardLayout } from '../layouts/dashboard-layouts';
 
-export default function UserManage() {
+interface PageProps {
+    users?: {
+        data?: UserTableRecord[];
+        meta?: Partial<{
+            current_page: number;
+            last_page: number;
+            per_page: number;
+            total: number;
+            from: number;
+            to: number;
+        }>;
+        links?: Partial<PaginationLinks>;
+    };
+    filters?: {
+        search?: string;
+    };
+    success?: string;
+    [key: string]: unknown;
+}
+
+export default function UserManagePage() {
+    const { users, filters, success } = usePage<PageProps>().props;
+    const [pendingDelete, setPendingDelete] = useState<UserTableRecord | null>(null);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [pendingBulk, setPendingBulk] = useState<UserTableRecord[]>([]);
+    const [bulkModalOpen, setBulkModalOpen] = useState(false);
+
+    const table = useUserManageTable({
+        users,
+        filters,
+        success,
+        onDeleteRequest: (user) => {
+            setPendingDelete(user);
+            setDeleteModalOpen(true);
+        },
+        onBulkDeleteRequest: (rows) => {
+            setPendingBulk(rows);
+            setBulkModalOpen(true);
+        },
+    });
+
+    const handleConfirmDelete = () => {
+        if (pendingDelete) {
+            table.deleteUser(pendingDelete);
+        }
+        setDeleteModalOpen(false);
+        setPendingDelete(null);
+    };
+
+    const handleConfirmBulkDelete = () => {
+        if (pendingBulk.length > 0) {
+            table.deleteUsers(pendingBulk);
+        }
+        setBulkModalOpen(false);
+        setPendingBulk([]);
+    };
+
     return (
         <>
-            <Head title="Pengguna" />
+            <Head title="Manajemen Pengguna" />
 
-            <DashboardLayout title="Pengguna">
-                <div className="mt-8 space-y-12">
-                    <section className="space-y-6">
-                        <header className="space-y-1.5">
-                            <h2 className="text-lg font-semibold text-foreground sm:text-xl">Selamat datang di panel kontrol IoT</h2>
-                            <p className="text-sm leading-relaxed text-muted-foreground">
-                                Kelola perangkat, automations, dan laporan Anda dari satu tempat terintegrasi. Tampilan ini akan menampilkan ringkasan
-                                aktivitas sistem dan performa IoT Anda.
-                            </p>
-                        </header>
+            <DashboardLayout title="Manajemen Pengguna">
+                {table.successMessage && (
+                    <Alert variant="success" className="mb-6 border-emerald-200/60 bg-emerald-50/70">
+                        <AlertTitle>Berhasil</AlertTitle>
+                        <AlertDescription>{table.successMessage}</AlertDescription>
+                    </Alert>
+                )}
 
-                        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-                            <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                                Gunakan navigasi di sebelah kiri untuk mengakses data perangkat, automations, dan laporan. Sistem ini dikembangkan
-                                untuk memastikan kendali penuh dan transparansi atas proses IoT Anda.
-                            </p>
-                            <Button variant="outline" size="lg" className="gap-3">
-                                Lihat dokumentasi
-                                <ArrowRightCircle className="size-5" />
-                            </Button>
-                        </div>
-                    </section>
-                </div>
+                <DataTableLayout title="Daftar Pengguna" action={table.action} search={table.search}>
+                    <DataTable
+                        columns={table.columns}
+                        data={table.data}
+                        onDeleteSelected={table.onBulkDelete}
+                        summaryText={table.summaryText}
+                        footerContent={
+                            <DataTablePagination meta={table.paginationMeta} links={table.paginationLinks} onPageChange={table.onPageChange} />
+                        }
+                    />
+                </DataTableLayout>
+
+                <ModalConfirm
+                    open={deleteModalOpen}
+                    onOpenChange={setDeleteModalOpen}
+                    variant="destructive"
+                    title={pendingDelete ? `Hapus ${pendingDelete.name}?` : 'Hapus pengguna?'}
+                    description="Tindakan ini tidak dapat dibatalkan. Pengguna akan dihapus secara permanen."
+                    confirmLabel="Hapus"
+                    cancelLabel="Batal"
+                    onConfirm={handleConfirmDelete}
+                />
+
+                <ModalConfirm
+                    open={bulkModalOpen}
+                    onOpenChange={setBulkModalOpen}
+                    variant="destructive"
+                    title="Hapus pengguna terpilih?"
+                    description={`Anda akan menghapus ${pendingBulk.length} pengguna sekaligus. Pastikan pilihan sudah benar.`}
+                    confirmLabel="Hapus Semua"
+                    cancelLabel="Batal"
+                    onConfirm={handleConfirmBulkDelete}
+                />
             </DashboardLayout>
         </>
     );

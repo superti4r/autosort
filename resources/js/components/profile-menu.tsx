@@ -125,12 +125,12 @@ export function DashboardProfileMenu({ user, className, variant = 'button' }: Da
                 role="menu"
                 aria-hidden={!open}
                 className={cn(
-                    'absolute top-[calc(100%+0.75rem)] right-0 w-56 overflow-hidden rounded-[1.5rem] border border-border/70 bg-card/95 p-2 text-sm shadow-xl ring-1 shadow-primary/10 ring-border/60 transition-all duration-200 ease-out',
+                    'shadow-[0_24px_55px_-32px_theme(colors.primary/55)] absolute top-[calc(100%+0.75rem)] right-0 w-56 overflow-hidden rounded-[1.5rem] border border-border/70 bg-card/95 p-2 text-sm ring-1 ring-border/60 transition-all duration-200 ease-out',
                     open ? 'translate-y-0 opacity-100' : 'pointer-events-none -translate-y-1 opacity-0',
                 )}
             >
                 <div className="flex items-center gap-3 rounded-[1.25rem] border border-border/60 bg-background/70 px-3 py-3">
-                    <span className="grid size-10 place-items-center rounded-[1.25rem] bg-primary/15 text-primary">
+                    <span className="grid size-10 place-items-center rounded-full bg-primary/15 text-primary shadow-inner">
                         <UserRound className="size-5" />
                     </span>
                     <div className="min-w-0">

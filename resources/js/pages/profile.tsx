@@ -53,7 +53,7 @@ export default function ProfilePage() {
             password: '',
             password_confirmation: '',
         });
-    }, [profile?.name, profile?.email, setData]);
+    }, [profile, setData]);
 
     const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();

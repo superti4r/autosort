@@ -27,11 +27,16 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'show'])->name('dashboard');
-    
+
     Route::get('/dashboard/profile', [UserProfileController::class, 'show'])->name('profile');
     Route::put('/dashboard/profile', [UserProfileController::class, 'update'])->name('profile.update');
 
     Route::get('/dashboard/users', [UserManageController::class, 'show'])->name('users');
+    Route::get('/dashboard/users/create', [UserManageController::class, 'create'])->name('users.create');
+    Route::post('/dashboard/users', [UserManageController::class, 'store'])->name('users.store');
+    Route::get('/dashboard/users/{user}/edit', [UserManageController::class, 'edit'])->name('users.edit');
+    Route::put('/dashboard/users/{user}', [UserManageController::class, 'update'])->name('users.update');
+    Route::delete('/dashboard/users/{user}', [UserManageController::class, 'destroy'])->name('users.destroy');
 
     Route::get('/dashboard/camera', [RealtimeCameraController::class, 'show'])->name('camera');
 
