@@ -2,7 +2,7 @@ import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { UserCog } from 'lucide-react';
 import type { FormEvent } from 'react';
 import { useMemo, useState } from 'react';
-import { ModalConfirm } from '../components/modals/modal-confirm';
+import { ModalConfirm } from '../components/modal-confirm';
 import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';

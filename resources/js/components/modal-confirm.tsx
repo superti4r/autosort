@@ -1,8 +1,8 @@
 import { ShieldAlert, X } from 'lucide-react';
 import * as React from 'react';
-import { cn } from '../../lib/utils';
-import { Button } from '../ui/button';
-import { Modal, ModalActions, ModalBody } from '../ui/modal';
+import { cn } from '../lib/utils';
+import { Button } from './ui/button';
+import { Modal, ModalActions, ModalBody } from './ui/modal';
 
 export type ConfirmVariant = 'default' | 'destructive' | 'success';
 

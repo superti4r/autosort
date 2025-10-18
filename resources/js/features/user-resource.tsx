@@ -2,12 +2,12 @@ import { router } from '@inertiajs/react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Plus } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { DataTableRowActions } from '../../components/data-table-row-actions';
-import type { ColumnMeta, PaginationLinks, PaginationMeta } from '../../components/data-table-types';
+import { DataTableRowActions } from '../components/data-table-row-actions';
+import type { ColumnMeta, PaginationLinks, PaginationMeta } from '../components/data-table-types';
 
 import UserManageController from '@/actions/App/Http/Controllers/Pages/UserManageController';
 
-export interface UserTableRecord {
+export interface UserResourceRecord {
     id: number;
     name: string;
     email: string;
@@ -15,19 +15,19 @@ export interface UserTableRecord {
 }
 
 interface UsersPayload {
-    data?: UserTableRecord[];
+    data?: UserResourceRecord[];
     meta?: Partial<PaginationMeta>;
     links?: Partial<PaginationLinks>;
 }
 
-interface UseUserManageTableArgs {
+interface UseUserResourceArgs {
     users?: UsersPayload;
     filters?: {
         search?: string;
     };
     success?: string;
-    onDeleteRequest?: (user: UserTableRecord) => void;
-    onBulkDeleteRequest?: (users: UserTableRecord[]) => void;
+    onDeleteRequest?: (user: UserResourceRecord) => void;
+    onBulkDeleteRequest?: (users: UserResourceRecord[]) => void;
 }
 
 const EMPTY_META: PaginationMeta = {
@@ -76,9 +76,9 @@ const normalizeUsers = (payload?: UsersPayload) => {
 };
 
 const createColumns = (handlers: {
-    onEdit: (user: UserTableRecord) => void;
-    onDelete: (user: UserTableRecord) => void;
-}): ColumnDef<UserTableRecord>[] => [
+    onEdit: (user: UserResourceRecord) => void;
+    onDelete: (user: UserResourceRecord) => void;
+}): ColumnDef<UserResourceRecord>[] => [
     {
         accessorKey: 'name',
         header: 'Nama',
@@ -128,7 +128,7 @@ const buildSummary = (meta: PaginationMeta, rowCount: number) => {
     return rowCount > 0 ? `Menampilkan ${rowCount} pengguna` : 'Belum ada data pengguna.';
 };
 
-export const useUserManageTable = ({ users: usersPayload, filters, success, onDeleteRequest, onBulkDeleteRequest }: UseUserManageTableArgs) => {
+export const useUserResource = ({ users: usersPayload, filters, success, onDeleteRequest, onBulkDeleteRequest }: UseUserResourceArgs) => {
     const users = normalizeUsers(usersPayload);
     const activeSearch = filters?.search ?? '';
     const [searchInput, setSearchInput] = useState(activeSearch);
@@ -178,14 +178,14 @@ export const useUserManageTable = ({ users: usersPayload, filters, success, onDe
         visitIndex({ search: null, page: 1 });
     }, [visitIndex]);
 
-    const deleteUser = useCallback((user: UserTableRecord) => {
+    const deleteUser = useCallback((user: UserResourceRecord) => {
         router.delete(UserManageController.destroy(user.id).url, {
             preserveScroll: true,
             preserveState: true,
         });
     }, []);
 
-    const deleteUsers = useCallback((rows: UserTableRecord[]) => {
+    const deleteUsers = useCallback((rows: UserResourceRecord[]) => {
         if (!rows.length) {
             return;
         }
@@ -199,7 +199,7 @@ export const useUserManageTable = ({ users: usersPayload, filters, success, onDe
     }, []);
 
     const handleBulkDelete = useCallback(
-        (rows: UserTableRecord[]) => {
+        (rows: UserResourceRecord[]) => {
             if (!rows.length) {
                 return;
             }
@@ -214,12 +214,12 @@ export const useUserManageTable = ({ users: usersPayload, filters, success, onDe
         [deleteUsers, onBulkDeleteRequest],
     );
 
-    const handleEdit = useCallback((user: UserTableRecord) => {
+    const handleEdit = useCallback((user: UserResourceRecord) => {
         router.visit(UserManageController.edit(user.id).url);
     }, []);
 
     const handleDelete = useCallback(
-        (user: UserTableRecord) => {
+        (user: UserResourceRecord) => {
             if (onDeleteRequest) {
                 onDeleteRequest(user);
                 return;
@@ -274,4 +274,4 @@ export const useUserManageTable = ({ users: usersPayload, filters, success, onDe
     };
 };
 
-export type UseUserManageTableReturn = ReturnType<typeof useUserManageTable>;
+export type UseUserResourceReturn = ReturnType<typeof useUserResource>;

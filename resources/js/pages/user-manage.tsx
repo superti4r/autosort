@@ -4,14 +4,14 @@ import { DataTable } from '../components/data-table';
 import DataTableLayout from '../components/data-table-layout';
 import DataTablePagination from '../components/data-table-pagination';
 import type { PaginationLinks } from '../components/data-table-types';
-import { ModalConfirm } from '../components/modals/modal-confirm';
+import { ModalConfirm } from '../components/modal-confirm';
 import { Alert, AlertDescription, AlertTitle } from '../components/ui/alert';
-import { useUserManageTable, type UserTableRecord } from '../features/users/use-user-manage-table';
+import { useUserResource, type UserResourceRecord } from '../features/user-resource';
 import { DashboardLayout } from '../layouts/dashboard-layouts';
 
 interface PageProps {
     users?: {
-        data?: UserTableRecord[];
+        data?: UserResourceRecord[];
         meta?: Partial<{
             current_page: number;
             last_page: number;
@@ -31,12 +31,12 @@ interface PageProps {
 
 export default function UserManagePage() {
     const { users, filters, success } = usePage<PageProps>().props;
-    const [pendingDelete, setPendingDelete] = useState<UserTableRecord | null>(null);
+    const [pendingDelete, setPendingDelete] = useState<UserResourceRecord | null>(null);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [pendingBulk, setPendingBulk] = useState<UserTableRecord[]>([]);
+    const [pendingBulk, setPendingBulk] = useState<UserResourceRecord[]>([]);
     const [bulkModalOpen, setBulkModalOpen] = useState(false);
 
-    const table = useUserManageTable({
+    const table = useUserResource({
         users,
         filters,
         success,

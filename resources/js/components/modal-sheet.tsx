@@ -1,7 +1,7 @@
 import { ArrowLeft, X } from 'lucide-react';
 import * as React from 'react';
-import { Button } from '../ui/button';
-import { Modal } from '../ui/modal';
+import { Button } from './ui/button';
+import { Modal } from './ui/modal';
 
 export interface ModalSheetProps {
     open: boolean;
