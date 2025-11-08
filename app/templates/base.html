@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>{% block title %}IoT Mushroom Sorter{% endblock %}</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              coffee:  '#3b2a20',
+              cocoa:   '#4a3428',
+              mocha:   '#6a4a3c',
+              hint:    '#7b5e4a',
+              cream:   '#f8f1e7',
+              wash:    '#f3e9dc',
+              veil:    '#f1e2d0',
+              paper:   '#f5e8d7',
+              caramel: '#d3b79f',
+              borderb: '#eadccc',
+              ok:      '#7fb77e',
+            }
+          }
+        }
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root{ font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Apple Color Emoji","Segoe UI Emoji"; }
+    </style>
+  </head>
+  <body class="min-h-dvh bg-cream text-coffee antialiased">
+    <header class="sticky top-0 z-20 border-b border-borderb/70 bg-gradient-to-r from-paper/90 via-veil/80 to-paper/90 backdrop-blur">
+      <div class="max-w-7xl mx-auto px-4 md:px-6 lg:px-8">
+        <div class="flex items-center justify-between py-3">
+          <div class="flex items-center gap-3">
+            <div class="h-9 w-9 rounded-xl bg-caramel shadow-sm shadow-mocha/10 grid place-items-center text-white font-bold">A</div>
+            <h1 class="font-semibold tracking-tight text-lg md:text-xl text-cocoa">
+              AutoSort · <span class="font-normal text-mocha">Overview</span>
+            </h1>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="bg-gradient-to-b from-transparent to-wash">
+      <div class="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6">
+        <div class="rounded-2xl border border-borderb bg-white/70 p-4 md:p-5 flex items-center justify-between">
+          <div class="space-y-1">
+            <p class="text-sm text-hint">Sistem Penyortiran Jamur</p>
+            <h2 class="text-xl md:text-2xl font-semibold text-coffee">Pemantauan Terkini</h2>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <main class="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6">
+      <div class="grid gap-6">
+        <div class="rounded-2xl border border-borderb bg-white/80 shadow-sm shadow-mocha/5 p-4 md:p-6">
+          {% block content %}{% endblock %}
+        </div>
+      </div>
+    </main>
+
+    <footer class="border-t border-borderb">
+      <div class="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6 text-xs text-hint flex items-center justify-between">
+        <span>© {{ 2025 }} AutoSort</span>
+        <span class="inline-flex items-center gap-2">
+          <span class="h-2 w-2 rounded-full bg-ok"></span>
+          <span>Status: Online</span>
+        </span>
+      </div>
+    </footer>
+  </body>
+</html>
