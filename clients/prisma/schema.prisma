@@ -74,7 +74,7 @@ model Verification {
   @@map("verification")
 }
 
-enum Preddiction {
+enum Grade {
   A
   B
   C
@@ -82,13 +82,13 @@ enum Preddiction {
   @@map("preddiction")
 }
 
-model Mushroom {
-  id          String      @id
-  file_path   String      @db.VarChar(30)
-  grade       Preddiction
+model HistoryResult {
+  id          String   @id
+  file_path   String   @db.VarChar(30)
+  preddiction Grade
   probability Json
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @default(now()) @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
 
-  @@map("mushroom")
+  @@map("history_result")
 }
