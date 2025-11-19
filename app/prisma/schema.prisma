@@ -73,3 +73,22 @@ model Verification {
 
   @@map("verification")
 }
+
+enum Grade {
+  A
+  B
+  C
+
+  @@map("grade")
+}
+
+model History {
+  id          String   @id
+  file_path   String   @db.VarChar(30)
+  prediction  Grade
+  probability Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  @@map("history")
+}
