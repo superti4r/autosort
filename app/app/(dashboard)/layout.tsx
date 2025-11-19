@@ -1,15 +1,21 @@
 "use client";
 
+import * as React from "react";
 import {
   useAuthenticate,
   RedirectToSignIn,
   AuthLoading,
   SignedIn,
 } from "@daveyplate/better-auth-ui";
-import { SkeletonLoading } from "@/components/skeleton-loading";
-import Greeting from "@/components/greeting";
 
-export default function DashboardPage() {
+import { SkeletonLoading } from "@/components/skeleton-loading";
+import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   useAuthenticate();
 
   return (
@@ -21,7 +27,7 @@ export default function DashboardPage() {
       <RedirectToSignIn />
 
       <SignedIn>
-        <Greeting />
+        <DashboardShell>{children}</DashboardShell>
       </SignedIn>
     </>
   );
