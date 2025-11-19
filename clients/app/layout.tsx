@@ -9,7 +9,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "AutoSort",
+  title: "AutoSort - Jamur Merang",
   description: "Generate mushroom quality preddiction using ML",
 };
 
