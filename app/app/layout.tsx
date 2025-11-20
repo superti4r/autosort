@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import type { ReactNode } from "react";
 import { Providers } from "./providers";
+import "dotenv/config";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -11,8 +12,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "AutoSort Jamur Merang",
-  description: "Dashboard autosort jamur merang dengan Better Auth UI",
+  title: process.env.NEXT_PUBLIC_APP_NAME as string,
+  description: process.env.NEXT_PUBLIC_APP_DESCRIPTION as string,
 };
 
 export default function RootLayout({
