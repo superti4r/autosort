@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { authClient } from "@/lib/auth-client";
 
 const DASHBOARD_TABS = [
   { value: "dashboard", label: "Dashboard", href: "/" },
@@ -28,6 +29,10 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const currentTab = resolveCurrentTab(pathname);
 
+  const { data: session } = authClient.useSession();
+
+  const displayName = session?.user?.name || session?.user?.email || "Pengguna";
+
   function handleTabChange(value: string) {
     const tab = DASHBOARD_TABS.find((t) => t.value === value);
     if (tab) router.push(tab.href);
@@ -37,12 +42,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen flex-col bg-background">
       <header className="flex items-center justify-between border-b px-6 py-4">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">
-            AutoSort
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Hai, Selamat Datang!
-          </p>
+          <h1 className="text-xl font-semibold tracking-tight">AutoSort</h1>
+          <p className="text-sm text-muted-foreground">Hai, {displayName}!</p>
         </div>
         <Button asChild variant="destructive" size="sm">
           <a href="/auth/sign-out">Keluar</a>
