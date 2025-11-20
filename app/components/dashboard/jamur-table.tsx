@@ -134,7 +134,7 @@ function JamurFilterBar({
   return (
     <div className="gap-4 md:flex md:items-center md:justify-between">
       <div>
-        <CardTitle>Riwayat</CardTitle>
+        <CardTitle>Data Jamur</CardTitle>
       </div>
       <div className="mt-3 flex w-full flex-col gap-2 sm:mt-0 sm:flex-row sm:items-center sm:justify-end">
         <Select

@@ -14,7 +14,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Sidebar,
   SidebarContent,
@@ -67,9 +67,7 @@ const NAV_ITEMS = [
 function resolveSegment(pathname: string) {
   if (pathname === "/" || pathname === "") return "dashboard";
   const match = NAV_ITEMS.find((item) =>
-    item.href === "/"
-      ? pathname === "/"
-      : pathname.startsWith(item.href),
+    item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
   );
   return match?.segment ?? "dashboard";
 }
@@ -77,18 +75,20 @@ function resolveSegment(pathname: string) {
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const activeSegment = resolveSegment(pathname);
+
   const { data: session } = authClient.useSession();
+
   const displayName =
-    session?.user?.name ||
-    session?.user?.email ||
-    "Operator AutoSort";
-  const initials =
-    (session?.user?.name || session?.user?.email || "AS")
-      .split(" ")
-      .map((part) => part[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase();
+    session?.user?.name || session?.user?.email || "Operator AutoSort";
+
+  const initials = (session?.user?.name || session?.user?.email || "AS")
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  const avatarUrl = session?.user?.image ?? undefined;
 
   return (
     <SidebarProvider className="bg-muted/20">
@@ -104,9 +104,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             <div className="space-y-0.5">
               <p className="text-sm font-semibold leading-tight">
                 AutoSort IoT
-              </p>
-              <p className="text-[11px] text-sidebar-foreground/70">
-                Klasifikasi jamur merang
               </p>
             </div>
           </div>
@@ -149,6 +146,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           <div className="rounded-xl border border-sidebar-border/60 bg-sidebar-accent/40 p-3">
             <div className="flex items-center gap-3">
               <Avatar className="size-10 border border-white/20">
+                {avatarUrl && <AvatarImage src={avatarUrl} alt={displayName} />}
                 <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
               <div className="text-sm">
@@ -159,13 +157,18 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               </div>
             </div>
             <div className="mt-3 flex flex-col gap-2">
-              <Button asChild size="sm" variant="outline" className="justify-center">
+              <Button
+                asChild
+                size="sm"
+                variant="outline"
+                className="justify-center"
+              >
                 <Link href="/account">Kelola profil</Link>
               </Button>
               <Button
                 asChild
                 size="sm"
-                className="bg-emerald-600 text-white hover:bg-emerald-600/90"
+                className="bg-red-600 text-white hover:bg-red-600/90"
               >
                 <Link href="/auth/sign-out">Keluar</Link>
               </Button>
@@ -182,24 +185,12 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                 <SidebarTrigger className="md:hidden" />
                 <div>
                   <p className="text-xs text-muted-foreground">
-                    Mode monitoring realtime
+                    @projectpintar.dev &mdash;
                   </p>
                   <h1 className="text-lg font-semibold leading-tight">
-                    Control Room AutoSort
+                    AutoSort
                   </h1>
                 </div>
-              </div>
-              <div className="hidden items-center gap-2 md:flex">
-                <Badge
-                  variant="outline"
-                  className="border-emerald-100 bg-emerald-50 text-emerald-600"
-                >
-                  <Wifi className="mr-1.5 h-3.5 w-3.5" />
-                  Perangkat online
-                </Badge>
-                <Button asChild size="sm" variant="outline">
-                  <Link href="/camera">Buka kamera</Link>
-                </Button>
               </div>
             </div>
             <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground md:hidden">
@@ -207,7 +198,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                 <Wifi className="mr-1 h-3 w-3" />
                 Online
               </Badge>
-              <span>Diperbarui {new Date().toLocaleTimeString("id-ID")}</span>
+              <span>Diperbarui beberapa saat lalu</span>
             </div>
           </header>
           <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:px-8">
