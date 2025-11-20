@@ -30,7 +30,6 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const currentTab = resolveCurrentTab(pathname);
 
   const { data: session } = authClient.useSession();
-
   const displayName = session?.user?.name || session?.user?.email || "Pengguna";
 
   function handleTabChange(value: string) {
@@ -45,9 +44,14 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           <h1 className="text-xl font-semibold tracking-tight">AutoSort</h1>
           <p className="text-sm text-muted-foreground">Hai, {displayName}!</p>
         </div>
-        <Button asChild variant="destructive" size="sm">
-          <a href="/auth/sign-out">Keluar</a>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline" size="sm">
+            <a href="/account">Profil</a>
+          </Button>
+          <Button asChild variant="destructive" size="sm">
+            <a href="/auth/sign-out">Keluar</a>
+          </Button>
+        </div>
       </header>
 
       <div className="border-b px-6 pt-4">
