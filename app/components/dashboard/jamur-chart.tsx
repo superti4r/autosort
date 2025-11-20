@@ -18,6 +18,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -151,6 +152,17 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+const numberFormatter = new Intl.NumberFormat("id-ID");
+const percentFormatter = new Intl.NumberFormat("id-ID", {
+  maximumFractionDigits: 1,
+});
+
+const gradeColors: Record<"A" | "B" | "C", string> = {
+  A: "var(--color-gradeA)",
+  B: "var(--color-gradeB)",
+  C: "var(--color-gradeC)",
+};
+
 export function JamurChart() {
   const [timeRange, setTimeRange] = React.useState<"90d" | "30d" | "7d">("90d");
 
@@ -171,6 +183,66 @@ export function JamurChart() {
       return date >= startDate;
     });
   }, [timeRange]);
+
+  const summary = React.useMemo(() => {
+    const totals = filteredData.reduce(
+      (acc, day) => {
+        acc.A += day.gradeA;
+        acc.B += day.gradeB;
+        acc.C += day.gradeC;
+        return acc;
+      },
+      { A: 0, B: 0, C: 0 }
+    );
+    const totalJamur = totals.A + totals.B + totals.C;
+    const averagePerDay = filteredData.length
+      ? Math.round(totalJamur / filteredData.length)
+      : 0;
+
+    const recentWindow = filteredData.slice(-7).reduce((acc, day) => {
+      return acc + day.gradeA + day.gradeB + day.gradeC;
+    }, 0);
+
+    const previousWindow = filteredData.slice(-14, -7).reduce((acc, day) => {
+      return acc + day.gradeA + day.gradeB + day.gradeC;
+    }, 0);
+
+    const change =
+      previousWindow === 0
+        ? 100
+        : ((recentWindow - previousWindow) / Math.max(previousWindow, 1)) * 100;
+
+    const latest = filteredData.at(-1);
+    const latestTotal = latest
+      ? latest.gradeA + latest.gradeB + latest.gradeC
+      : 0;
+
+    const dominant =
+      totals.A >= totals.B && totals.A >= totals.C
+        ? "A"
+        : totals.B >= totals.C
+          ? "B"
+          : "C";
+
+    return {
+      totals,
+      totalJamur,
+      averagePerDay,
+      change,
+      latestTotal,
+      latestDate: latest?.date,
+      dominant,
+    };
+  }, [filteredData]);
+
+  const latestDateLabel = summary.latestDate
+    ? new Date(summary.latestDate).toLocaleDateString("id-ID", {
+        weekday: "long",
+        day: "numeric",
+        month: "short",
+      })
+    : "-";
+  const changeIsPositive = summary.change >= 0;
 
   return (
     <Card className="pt-0">
@@ -306,6 +378,65 @@ export function JamurChart() {
             <ChartLegend content={<ChartLegendContent />} />
           </AreaChart>
         </ChartContainer>
+        <div className="mt-6 grid gap-5 rounded-2xl border border-dashed border-border/70 bg-muted/30 p-4 sm:grid-cols-3">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+              Total rentang ini
+            </p>
+            <p className="text-2xl font-semibold">
+              {numberFormatter.format(summary.totalJamur)}
+            </p>
+            <Badge
+              variant="outline"
+              className={`mt-2 border px-3 py-1 text-xs ${changeIsPositive ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"}`}
+            >
+              {changeIsPositive ? "+" : ""}
+              {percentFormatter.format(summary.change)}% vs 7 hari lalu
+            </Badge>
+          </div>
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+              Rata-rata per hari
+            </p>
+            <p className="text-2xl font-semibold">
+              {numberFormatter.format(summary.averagePerDay)}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Terakhir {latestDateLabel} •{" "}
+              {numberFormatter.format(summary.latestTotal)} jamur
+            </p>
+          </div>
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+              Dominasi grade
+            </p>
+            <p className="text-xl font-semibold">Grade {summary.dominant}</p>
+            <div className="mt-3 space-y-2 text-xs text-muted-foreground">
+              {(["A", "B", "C"] as const).map((grade) => {
+                const portion = summary.totalJamur
+                  ? Math.round((summary.totals[grade] / summary.totalJamur) * 100)
+                  : 0;
+                return (
+                  <div key={grade}>
+                    <div className="flex items-center justify-between">
+                      <span>Grade {grade}</span>
+                      <span>{portion}%</span>
+                    </div>
+                    <div className="mt-1 h-2 rounded-full bg-muted">
+                      <span
+                        className="block h-full rounded-full"
+                        style={{
+                          width: `${portion}%`,
+                          backgroundColor: gradeColors[grade],
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

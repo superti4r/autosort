@@ -3,8 +3,17 @@ import { authViewPaths } from "@daveyplate/better-auth-ui/server";
 
 export const dynamicParams = false;
 
+const allowedAuthPaths = [
+  authViewPaths.CALLBACK,
+  authViewPaths.RECOVER_ACCOUNT,
+  authViewPaths.SIGN_IN,
+  authViewPaths.SIGN_OUT,
+  authViewPaths.TWO_FACTOR,
+  authViewPaths.ACCEPT_INVITATION,
+] as const;
+
 export function generateStaticParams() {
-  return Object.values(authViewPaths).map((path) => ({ path }));
+  return allowedAuthPaths.map((path) => ({ path }));
 }
 
 export default async function AuthPage({

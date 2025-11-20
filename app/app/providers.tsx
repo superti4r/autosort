@@ -79,7 +79,7 @@ const id = {
   VERIFY_YOUR_EMAIL_DESCRIPTION:
     "Silakan verifikasi alamat email Anda. Periksa kotak masuk untuk email verifikasi. Jika belum menerima email, klik tombol di bawah untuk mengirim ulang.",
   VERIFY_YOUR_EMAIL: "Verifikasi Email Anda",
-  SIGN_IN_USERNAME_PLACEHOLDER: "Nama pengguna atau email",
+  SIGN_IN_USERNAME_PLACEHOLDER: "Akun GitHub",
   USERNAME_PLACEHOLDER: "Nama pengguna",
   USERNAME_INSTRUCTIONS: "Gunakan maksimal 32 karakter.",
   USERNAME_DESCRIPTION:
@@ -120,8 +120,8 @@ const id = {
   SIGN_OUT: "Keluar",
   SIGN_IN_WITH: "Masuk dengan",
   SIGN_IN_USERNAME_DESCRIPTION:
-    "Masukkan nama pengguna atau email untuk masuk ke akun Anda.",
-  SIGN_IN_DESCRIPTION: "Masukkan email Anda untuk masuk ke akun.",
+    "Gunakan akun GitHub Anda untuk mengakses dashboard.",
+  SIGN_IN_DESCRIPTION: "Masuk dengan menghubungkan akun GitHub Anda.",
   SIGN_IN_ACTION: "Masuk",
   SIGN_IN: "Masuk",
   API_KEY: "API Key",
@@ -453,6 +453,10 @@ export function Providers({ children }: { children: ReactNode }) {
       onSessionChange={() => {
         router.refresh();
       }}
+      credentials={false}
+      signUp={false}
+      changeEmail={false}
+      emailVerification={false}
       social={{
         providers: ["github"],
       }}

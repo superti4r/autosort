@@ -1,8 +1,12 @@
-import "dotenv/config";
+"use client";
+
 import { createAuthClient } from "better-auth/react";
 
-export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_BASE_URL as string,
+const origin = process.env.NEXT_PUBLIC_BETTER_AUTH_URL?.replace(/\/$/, "");
+
+const client = createAuthClient({
+  baseURL: origin ? `${origin}/api/auth` : "/api/auth",
 });
 
-export const { signIn, signUp, useSession } = createAuthClient();
+export const authClient = client;
+export const { signIn, signUp, useSession } = client;

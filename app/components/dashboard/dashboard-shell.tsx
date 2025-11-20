@@ -1,72 +1,220 @@
 "use client";
 
 import * as React from "react";
-import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  LayoutDashboard,
+  Camera,
+  Database,
+  ScrollText,
+  Sprout,
+  Wifi,
+} from "lucide-react";
 
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarRail,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 import { authClient } from "@/lib/auth-client";
 
-const DASHBOARD_TABS = [
-  { value: "dashboard", label: "Dashboard", href: "/" },
-  { value: "camera", label: "Lihat Kamera", href: "/camera" },
-  { value: "data", label: "Data Jamur", href: "/data-jamur" },
-  { value: "log", label: "Log", href: "/log" },
+const NAV_ITEMS = [
+  {
+    label: "Ringkasan",
+    description: "Pantau status mesin & statistik",
+    href: "/",
+    segment: "dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    label: "Lihat Kamera",
+    description: "Streaming kamera conveyor",
+    href: "/camera",
+    segment: "camera",
+    icon: Camera,
+  },
+  {
+    label: "Data Jamur",
+    description: "Hasil sortir dan probabilitas",
+    href: "/data-jamur",
+    segment: "data-jamur",
+    icon: Database,
+  },
+  {
+    label: "Log Sistem",
+    description: "Riwayat mesin & notifikasi",
+    href: "/log",
+    segment: "log",
+    icon: ScrollText,
+  },
 ] as const;
 
-type TabValue = (typeof DASHBOARD_TABS)[number]["value"];
-
-function resolveCurrentTab(pathname: string): TabValue {
+function resolveSegment(pathname: string) {
   if (pathname === "/" || pathname === "") return "dashboard";
-  if (pathname.startsWith("/camera")) return "camera";
-  if (pathname.startsWith("/data-jamur")) return "data";
-  if (pathname.startsWith("/log")) return "log";
-  return "dashboard";
+  const match = NAV_ITEMS.find((item) =>
+    item.href === "/"
+      ? pathname === "/"
+      : pathname.startsWith(item.href),
+  );
+  return match?.segment ?? "dashboard";
 }
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
   const pathname = usePathname();
-  const currentTab = resolveCurrentTab(pathname);
-
+  const activeSegment = resolveSegment(pathname);
   const { data: session } = authClient.useSession();
-  const displayName = session?.user?.name || session?.user?.email || "Pengguna";
-
-  function handleTabChange(value: string) {
-    const tab = DASHBOARD_TABS.find((t) => t.value === value);
-    if (tab) router.push(tab.href);
-  }
+  const displayName =
+    session?.user?.name ||
+    session?.user?.email ||
+    "Operator AutoSort";
+  const initials =
+    (session?.user?.name || session?.user?.email || "AS")
+      .split(" ")
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <header className="flex items-center justify-between border-b px-6 py-4">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">AutoSort</h1>
-          <p className="text-sm text-muted-foreground">Hai, {displayName}!</p>
+    <SidebarProvider className="bg-muted/20">
+      <Sidebar
+        collapsible="icon"
+        className="border-r bg-sidebar text-sidebar-foreground"
+      >
+        <SidebarHeader>
+          <div className="flex items-center gap-3 rounded-xl bg-sidebar-accent/60 px-3 py-2">
+            <div className="flex size-9 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600">
+              <Sprout className="h-5 w-5" />
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-sm font-semibold leading-tight">
+                AutoSort IoT
+              </p>
+              <p className="text-[11px] text-sidebar-foreground/70">
+                Klasifikasi jamur merang
+              </p>
+            </div>
+          </div>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>Menu Utama</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {NAV_ITEMS.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeSegment === item.segment;
+                  return (
+                    <SidebarMenuItem key={item.segment}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={isActive}
+                        className="items-start gap-3"
+                      >
+                        <Link href={item.href}>
+                          <Icon className="mt-0.5 h-5 w-5 shrink-0" />
+                          <span className="flex flex-1 flex-col">
+                            <span className="text-sm font-medium">
+                              {item.label}
+                            </span>
+                            <span className="text-xs text-sidebar-foreground/70">
+                              {item.description}
+                            </span>
+                          </span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+        <SidebarFooter>
+          <div className="rounded-xl border border-sidebar-border/60 bg-sidebar-accent/40 p-3">
+            <div className="flex items-center gap-3">
+              <Avatar className="size-10 border border-white/20">
+                <AvatarFallback>{initials}</AvatarFallback>
+              </Avatar>
+              <div className="text-sm">
+                <p className="font-medium">{displayName}</p>
+                <p className="text-xs text-sidebar-foreground/70">
+                  Operator aktif
+                </p>
+              </div>
+            </div>
+            <div className="mt-3 flex flex-col gap-2">
+              <Button asChild size="sm" variant="outline" className="justify-center">
+                <Link href="/account">Kelola profil</Link>
+              </Button>
+              <Button
+                asChild
+                size="sm"
+                className="bg-emerald-600 text-white hover:bg-emerald-600/90"
+              >
+                <Link href="/auth/sign-out">Keluar</Link>
+              </Button>
+            </div>
+          </div>
+        </SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
+      <SidebarInset className="bg-gradient-to-br from-background via-background to-muted/40">
+        <div className="relative flex min-h-screen flex-col">
+          <header className="sticky top-0 z-20 border-b border-border/60 bg-background/95 px-4 py-4 backdrop-blur md:px-8">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <SidebarTrigger className="md:hidden" />
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    Mode monitoring realtime
+                  </p>
+                  <h1 className="text-lg font-semibold leading-tight">
+                    Control Room AutoSort
+                  </h1>
+                </div>
+              </div>
+              <div className="hidden items-center gap-2 md:flex">
+                <Badge
+                  variant="outline"
+                  className="border-emerald-100 bg-emerald-50 text-emerald-600"
+                >
+                  <Wifi className="mr-1.5 h-3.5 w-3.5" />
+                  Perangkat online
+                </Badge>
+                <Button asChild size="sm" variant="outline">
+                  <Link href="/camera">Buka kamera</Link>
+                </Button>
+              </div>
+            </div>
+            <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground md:hidden">
+              <Badge className="bg-emerald-600 text-white">
+                <Wifi className="mr-1 h-3 w-3" />
+                Online
+              </Badge>
+              <span>Diperbarui {new Date().toLocaleTimeString("id-ID")}</span>
+            </div>
+          </header>
+          <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:px-8">
+            {children}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button asChild variant="outline" size="sm">
-            <a href="/account">Profil</a>
-          </Button>
-          <Button asChild variant="destructive" size="sm">
-            <a href="/auth/sign-out">Keluar</a>
-          </Button>
-        </div>
-      </header>
-
-      <div className="border-b px-6 pt-4">
-        <Tabs value={currentTab} onValueChange={handleTabChange}>
-          <TabsList>
-            {DASHBOARD_TABS.map((tab) => (
-              <TabsTrigger key={tab.value} value={tab.value}>
-                {tab.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-      </div>
-
-      <main className="flex flex-1 flex-col gap-6 px-6 py-6">{children}</main>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
