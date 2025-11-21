@@ -42,9 +42,10 @@ def generate_frames(ctx: CameraContext) -> Generator[bytes, None, None]:
             b"Content-Type: image/jpeg\r\n\r\n" + frame_bytes + b"\r\n"
         )
         time.sleep(0.03)
-        
+
 
 def capture_image(ctx: CameraContext, output_dir: str = "captures") -> dict:
+
     cap = ctx.capture
     if cap is None:
         return {"status": "error", "message": "Kamera belum diinisialisasi"}
@@ -53,9 +54,17 @@ def capture_image(ctx: CameraContext, output_dir: str = "captures") -> dict:
     if not success:
         return {"status": "error", "message": "Gagal menangkap gambar"}
 
-    Path(output_dir).mkdir(parents=True, exist_ok=True)
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
     filename = f"capture_{int(time.time())}.jpg"
-    path = Path(output_dir) / filename
+    path = out_dir / filename
     cv2.imwrite(str(path), frame)
 
-    return {"status": "ok", "file": str(path)}
+    rel_path = str(path.relative_to(Path.cwd()))
+
+    return {
+        "status": "ok",
+        "file": rel_path,
+        "filename": filename,
+    }

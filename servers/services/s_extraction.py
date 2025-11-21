@@ -11,8 +11,8 @@ def load_feature_model():
     if _feature_model is not None:
         return _feature_model
 
-    path = os.getenv("FEATURE_MODEL_PATH")
-    path = Path(path)
+    path_str = os.getenv("FEATURE_MODEL_PATH")
+    path = Path(path_str)
     if not path.exists():
         raise FileNotFoundError(f"Feature model tidak ditemukan: {path}")
 
@@ -23,9 +23,7 @@ def load_feature_model():
 
 
 def extract_features(image_path: str):
+
     model = load_feature_model()
-
-    #logic
-
     features = model.extract(image_path)
     return features

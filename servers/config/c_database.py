@@ -8,6 +8,18 @@ _engine = None
 _SessionLocal = None
 
 
+def _env(key: str, default: str) -> str:
+
+    val = os.getenv(key)
+    if val is None:
+        return default
+
+    txt = val.strip()
+    if txt == "" or txt.lower() == "none":
+        return default
+
+    return txt
+
 def get_database_url() -> str:
     host = os.getenv("DB_HOST")
     port = os.getenv("DB_PORT")
@@ -17,8 +29,8 @@ def get_database_url() -> str:
 
     return f"mysql+pymysql://{user}:{password}@{host}:{port}/{name}"
 
-
 def init_db() -> None:
+
     global _engine, _SessionLocal
 
     if _engine is not None:
@@ -27,6 +39,10 @@ def init_db() -> None:
     db_url = get_database_url()
     _engine = create_engine(db_url, pool_pre_ping=True)
     _SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
+
+    from models import History
+
+    Base.metadata.create_all(bind=_engine)
 
     print("[INFO] Database engine initialized")
 
