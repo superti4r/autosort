@@ -1,2 +1,8 @@
 .venv
 .env
+.vscode
+__pycache__
+config/__pycache__
+models/__pycache__
+routes/__pycache__
+services/__pycache__
