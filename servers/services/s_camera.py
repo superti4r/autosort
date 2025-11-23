@@ -27,7 +27,7 @@ def get_camera_info(ctx: CameraContext) -> dict:
 def generate_frames(ctx: CameraContext) -> Generator[bytes, None, None]:
     cap = ctx.capture
     if cap is None:
-        raise RuntimeError("Kamera belum diinisialisasi")
+        raise RuntimeError("Kamera belum di siapkan")
 
     while True:
         success, frame = cap.read()
@@ -48,7 +48,7 @@ def capture_image(ctx: CameraContext, output_dir: str = "captures") -> dict:
 
     cap = ctx.capture
     if cap is None:
-        return {"status": "error", "message": "Kamera belum diinisialisasi"}
+        return {"status": "error", "message": "Kamera belum di siapkan"}
 
     success, frame = cap.read()
     if not success:

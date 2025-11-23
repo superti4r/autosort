@@ -55,13 +55,6 @@ const NAV_ITEMS = [
     segment: "data-jamur",
     icon: Database,
   },
-  {
-    label: "Log Sistem",
-    description: "Riwayat mesin & notifikasi",
-    href: "/log",
-    segment: "log",
-    icon: ScrollText,
-  },
 ] as const;
 
 function resolveSegment(pathname: string) {
