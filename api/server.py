@@ -1,4 +1,4 @@
-from fastapi import FastAPI, BackgroundTasks
+from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from database import init_db
@@ -19,8 +19,13 @@ app.add_middleware(
 @app.on_event("startup")
 def startup_event():
     init_db()
+    camera.start()
     mqtt_client.start()
     orchestrator.start_loop()
+
+@app.on_event("shutdown")
+def shutdown_event():
+    camera.stop()
 
 @app.get("/")
 def read_root():
