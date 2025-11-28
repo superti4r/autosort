@@ -1,11 +1,14 @@
-from fastapi import FastAPI
-from fastapi.responses import StreamingResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import StreamingResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 from database import init_db
 from services.mqtt_service import mqtt_client
 from services.camera_service import camera
 from services.orchestrator import orchestrator
 import uvicorn
+import os
 
 app = FastAPI(title="Mushroom Grading IoT System")
 
@@ -15,6 +18,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+templates = Jinja2Templates(directory="templates")
 
 @app.on_event("startup")
 def startup_event():
@@ -27,9 +32,9 @@ def startup_event():
 def shutdown_event():
     camera.stop()
 
-@app.get("/")
-def read_root():
-    return {"status": "System Online", "service": "Mushroom Grading"}
+@app.get("/", response_class=HTMLResponse)
+def read_root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request, "title": "AutoSort Dashboard"})
 
 def gen_frames():
     while True:
@@ -50,7 +55,7 @@ def get_telemetry():
 def get_current_prediction():
     if orchestrator.last_prediction_result:
         return orchestrator.last_prediction_result
-    return {"message": "Waiting for prediction..."}
+    return {"label": "None", "probs": {}}
 
 @app.post("/control/motor/{command}")
 def control_motor(command: str):
