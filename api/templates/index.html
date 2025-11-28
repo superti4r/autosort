@@ -199,9 +199,9 @@
                         </div>
                     </div>
                     
-                    <!-- Chart Aktivitas (Dummy/Simple) -->
+                    <!-- Chart Aktivitas (Confidence Real-time) -->
                     <div class="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-6">
-                        <h3 class="font-semibold leading-none tracking-tight mb-4 text-sm text-muted-foreground uppercase">System Activity</h3>
+                        <h3 class="font-semibold leading-none tracking-tight mb-4 text-sm text-muted-foreground uppercase">Detection Confidence</h3>
                         <div class="relative h-48 w-full">
                             <canvas id="activityChart"></canvas>
                         </div>
@@ -295,19 +295,23 @@
     </main>
 
     <script>
-        // --- 1. SETUP CHARTS ---
+        // --- CONFIG CHART JS (Global Font) ---
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = 'rgba(148, 163, 184, 0.7)';
+
+        // --- 1. SETUP GRADE CHART (BAR) ---
         const ctxGrade = document.getElementById('gradeChart').getContext('2d');
         const gradeChart = new Chart(ctxGrade, {
             type: 'bar',
             data: {
                 labels: ['Grade A', 'Grade B', 'Grade C'],
                 datasets: [{
-                    label: 'Count',
+                    label: 'Jumlah',
                     data: [0, 0, 0],
                     backgroundColor: [
-                        'rgba(16, 185, 129, 0.7)', // Emerald
-                        'rgba(234, 179, 8, 0.7)',  // Yellow
-                        'rgba(239, 68, 68, 0.7)'   // Red
+                        'rgba(16, 185, 129, 0.2)', // Emerald
+                        'rgba(234, 179, 8, 0.2)',  // Yellow
+                        'rgba(239, 68, 68, 0.2)'   // Red
                     ],
                     borderColor: [
                         'rgba(16, 185, 129, 1)',
@@ -315,7 +319,8 @@
                         'rgba(239, 68, 68, 1)'
                     ],
                     borderWidth: 1,
-                    borderRadius: 6
+                    borderRadius: 4,
+                    barPercentage: 0.6
                 }]
             },
             options: {
@@ -323,27 +328,40 @@
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                    y: { 
+                        beginAtZero: true, 
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { stepSize: 1 }
+                    },
                     x: { grid: { display: false } }
                 }
             }
         });
 
+        // --- 2. SETUP ACTIVITY CHART (REAL-TIME LINE) ---
         const ctxActivity = document.getElementById('activityChart').getContext('2d');
-        // Dummy data for activity visualization
         const activityChart = new Chart(ctxActivity, {
             type: 'line',
             data: {
-                labels: Array.from({length: 10}, (_, i) => i + 1),
+                // Label waktu (kosong dulu)
+                labels: Array(20).fill(''), 
                 datasets: [{
-                    label: 'Latency (ms)',
-                    data: [120, 135, 125, 140, 130, 128, 145, 132, 129, 138],
-                    borderColor: 'hsl(217.2, 91.2%, 59.8%)',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    label: 'Confidence Level (%)',
+                    // Data awal 0
+                    data: Array(20).fill(0),
+                    borderColor: 'hsl(217.2, 91.2%, 59.8%)', // Primary Color
+                    backgroundColor: (context) => {
+                        const ctx = context.chart.ctx;
+                        const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+                        gradient.addColorStop(0, 'rgba(59, 130, 246, 0.5)');
+                        gradient.addColorStop(1, 'rgba(59, 130, 246, 0)');
+                        return gradient;
+                    },
                     borderWidth: 2,
                     fill: true,
-                    tension: 0.4,
-                    pointRadius: 0
+                    tension: 0.4, // Kurva halus
+                    pointRadius: 0, // Sembunyikan titik agar bersih
+                    pointHoverRadius: 4
                 }]
             },
             options: {
@@ -351,14 +369,36 @@
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
-                    y: { display: false },
-                    x: { display: false }
+                    y: { 
+                        min: 0, 
+                        max: 100, 
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { callback: (val) => val + '%' }
+                    },
+                    x: { display: false } // Sembunyikan label X agar bersih
                 },
-                animation: { duration: 1000 }
+                animation: { duration: 0 } // Matikan animasi berat agar real-time lancar
             }
         });
 
-        // --- 2. LOGIC PREDICTION ---
+        // Helper untuk update chart real-time (Geser data ke kiri)
+        function addDataToChart(chart, label, dataPoint) {
+            chart.data.labels.push(label);
+            chart.data.datasets.forEach((dataset) => {
+                dataset.data.push(dataPoint);
+            });
+
+            // Hapus data lama agar chart bergerak
+            if (chart.data.labels.length > 20) {
+                chart.data.labels.shift();
+                chart.data.datasets.forEach((dataset) => {
+                    dataset.data.shift();
+                });
+            }
+            chart.update('none'); // Mode 'none' agar tidak flicker animasi ulang
+        }
+
+        // --- 3. LOGIC PREDICTION (FETCH & UPDATE CHART) ---
         async function fetchPrediction() {
             try {
                 const response = await fetch('/prediction/current');
@@ -371,67 +411,71 @@
                 const glowBg = document.getElementById('glow-bg');
                 const tsBadge = document.getElementById('timestamp-badge');
 
+                let currentConf = 0;
+
                 if (data.label && data.label !== "None") {
                     const grade = data.label;
                     gradeDisplay.innerText = grade;
                     
-                    let maxConf = 0;
-                    if (data.probs) maxConf = (data.probs[grade] * 100).toFixed(1);
+                    if (data.probs) {
+                        currentConf = (data.probs[grade] * 100).toFixed(1);
+                    }
                     
-                    confDisplay.innerText = `${maxConf}%`;
-                    confBar.style.width = `${maxConf}%`;
+                    confDisplay.innerText = `${currentConf}%`;
+                    confBar.style.width = `${currentConf}%`;
                     tsBadge.innerText = new Date().toLocaleTimeString();
 
-                    // Dynamic Styling
+                    // Styling Dinamis
                     if (grade === 'A') {
                         gradeDisplay.className = "text-6xl font-black text-emerald-500";
-                        gradeCircle.className = "w-32 h-32 rounded-full border-4 border-emerald-500/50 flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(16,185,129,0.3)] bg-emerald-500/10";
-                        confBar.className = "h-full bg-emerald-500 transition-all duration-500";
+                        gradeCircle.className = "w-32 h-32 rounded-full border-4 border-emerald-500/50 flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(16,185,129,0.3)] bg-emerald-500/10 transition-all duration-300";
+                        confBar.className = "h-full bg-emerald-500 transition-all duration-300";
                         glowBg.className = "absolute top-0 right-0 w-32 h-32 bg-emerald-500/20 blur-[60px] rounded-full transition-colors duration-500";
                     } else if (grade === 'B') {
                         gradeDisplay.className = "text-6xl font-black text-yellow-500";
-                        gradeCircle.className = "w-32 h-32 rounded-full border-4 border-yellow-500/50 flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(234,179,8,0.3)] bg-yellow-500/10";
-                        confBar.className = "h-full bg-yellow-500 transition-all duration-500";
+                        gradeCircle.className = "w-32 h-32 rounded-full border-4 border-yellow-500/50 flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(234,179,8,0.3)] bg-yellow-500/10 transition-all duration-300";
+                        confBar.className = "h-full bg-yellow-500 transition-all duration-300";
                         glowBg.className = "absolute top-0 right-0 w-32 h-32 bg-yellow-500/20 blur-[60px] rounded-full transition-colors duration-500";
                     } else {
                         gradeDisplay.className = "text-6xl font-black text-red-500";
-                        gradeCircle.className = "w-32 h-32 rounded-full border-4 border-red-500/50 flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(239,68,68,0.3)] bg-red-500/10";
-                        confBar.className = "h-full bg-red-500 transition-all duration-500";
+                        gradeCircle.className = "w-32 h-32 rounded-full border-4 border-red-500/50 flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(239,68,68,0.3)] bg-red-500/10 transition-all duration-300";
+                        confBar.className = "h-full bg-red-500 transition-all duration-300";
                         glowBg.className = "absolute top-0 right-0 w-32 h-32 bg-red-500/20 blur-[60px] rounded-full transition-colors duration-500";
                     }
+                } else {
+                    // Jika tidak ada deteksi, confidence 0
+                    currentConf = 0;
                 }
+
+                // UPDATE CHART AKTIVITAS DI SINI (Real-time Heartbeat)
+                addDataToChart(activityChart, new Date().toLocaleTimeString(), currentConf);
+
             } catch (error) { console.error("API Error:", error); }
         }
 
-        // --- 3. LOGIC TELEMETRY ---
+        // --- 4. LOGIC TELEMETRY ---
         async function fetchTelemetry() {
             try {
                 const response = await fetch('/telemetry');
                 const data = await response.json();
                 
                 if (data) {
-                    // Update Text Stats
+                    // Update Angka Statistik
                     if(data.number !== undefined) document.getElementById('stat-total').innerText = data.number;
                     if(data.a_count !== undefined) document.getElementById('stat-a').innerText = data.a_count;
                     if(data.b_count !== undefined) document.getElementById('stat-b').innerText = data.b_count;
                     if(data.c_count !== undefined) document.getElementById('stat-c').innerText = data.c_count;
 
-                    // Update Chart Data
+                    // Update Chart Distribusi (Batang)
                     if (gradeChart && data.a_count !== undefined) {
                         gradeChart.data.datasets[0].data = [data.a_count, data.b_count, data.c_count];
-                        gradeChart.update();
+                        gradeChart.update('none'); // Update tanpa animasi ulang
                     }
-
-                    // Simulated Activity Chart Update (Just visual candy)
-                    const newData = Math.floor(Math.random() * (150 - 100 + 1) + 100);
-                    activityChart.data.datasets[0].data.push(newData);
-                    activityChart.data.datasets[0].data.shift();
-                    activityChart.update();
                 }
             } catch (error) { console.error(error); }
         }
 
-        // --- 4. MOTOR CONTROL ---
+        // --- 5. MOTOR CONTROL ---
         async function controlMotor(action) {
             const statusEl = document.getElementById('motor-status');
             statusEl.innerText = "Sending command...";
@@ -453,9 +497,9 @@
             }
         }
 
-        // Init Loops
-        setInterval(fetchPrediction, 1000);
-        setInterval(fetchTelemetry, 2000);
+        // Loop Data
+        setInterval(fetchPrediction, 1000); // 1 Detik sekali update prediksi & chart garis
+        setInterval(fetchTelemetry, 2000);  // 2 Detik sekali update total count & chart batang
     </script>
 </body>
 </html>
