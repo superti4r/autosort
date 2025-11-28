@@ -191,7 +191,7 @@ async function fetchTelemetry() {
 
 async function controlMotor(action) {
   const statusEl = document.getElementById("motor-status");
-  statusEl.innerHTML = `<span class="animate-pulse text-primary font-bold">Sending...</span>`;
+  statusEl.innerHTML = `<span class="animate-pulse text-primary font-bold">Tunggu...</span>`;
   try {
     const response = await fetch(`/control/motor/${action}`, {
       method: "POST",
@@ -200,10 +200,10 @@ async function controlMotor(action) {
     if (result.status === "success") {
       const color = action === "start" ? "text-green-600" : "text-red-600";
       statusEl.innerHTML = `<span class="h-1.5 w-1.5 rounded-full bg-current ${color} inline-block mr-1"></span> <span class="${color} font-bold">${
-        action === "start" ? "Running" : "Stopped"
+        action === "start" ? "Berjalan" : "Berhenti"
       }</span>`;
     } else {
-      statusEl.innerHTML = `<span class="text-red-600 font-bold">Failed</span>`;
+      statusEl.innerHTML = `<span class="text-red-600 font-bold">Gagal</span>`;
     }
   } catch (e) {
     statusEl.innerHTML = `<span class="text-red-600 font-bold">Error</span>`;
