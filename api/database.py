@@ -13,18 +13,11 @@ class PredictionHistory(Base):
     __tablename__ = "history"
 
     id = Column(String(191), primary_key=True, default=lambda: str(uuid.uuid4()))
-    file_path = Column(String(30), nullable=False, default="stream_capture")
-    prediction = Column(Enum('A', 'B', 'C'), nullable=False)
+    file_path = Column(String(30), nullable=False)
+    prediction = Column(Enum('A', 'B', 'C', name='grade_enum'), nullable=False)
     probability = Column(JSON, nullable=False)
-    createdAt = Column(DateTime(3), default=datetime.utcnow, nullable=False)
-    updatedAt = Column(DateTime(3), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    createdAt = Column(DateTime(3), default=datetime.now, nullable=False)
+    updatedAt = Column(DateTime(3), default=datetime.now, onupdate=datetime.now, nullable=False)
 
 def init_db():
     Base.metadata.create_all(bind=engine)
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()

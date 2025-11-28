@@ -3,18 +3,15 @@ import numpy as np
 from skimage.feature import graycomatrix, graycoprops, local_binary_pattern
 
 def extract_features_from_bgr(img_bgr):
-
     if img_bgr is None:
         return None
 
     img = cv2.resize(img_bgr, (256, 256))
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-
     h, w = gray.shape
 
     mask = np.where(gray > 10, 255, 0).astype("uint8")
-
     kernel = np.ones((3, 3), np.uint8)
     mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel, iterations=2)
     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel, iterations=1)
@@ -40,7 +37,6 @@ def extract_features_from_bgr(img_bgr):
     extent = area / rect_area if rect_area > 0 else 0
 
     hsv_pixels = hsv[mask > 0]
-
     if len(hsv_pixels) > 0:
         mean_h = float(np.mean(hsv_pixels[:, 0]))
         std_h = float(np.std(hsv_pixels[:, 0]))
@@ -54,7 +50,6 @@ def extract_features_from_bgr(img_bgr):
     dark_pct = float(np.sum(hsv[:, :, 2] < 50) / (h * w))
 
     gray_masked = cv2.bitwise_and(gray, gray, mask=mask)
-
     if np.sum(mask) > 200:
         glcm = graycomatrix(
             gray_masked,
@@ -64,7 +59,6 @@ def extract_features_from_bgr(img_bgr):
             symmetric=True,
             normed=True
         )
-
         glcm_features = {}
         for i, angle in enumerate(["0", "45", "90", "135"]):
             glcm_features[f"glcm_contrast_{angle}"] = float(graycoprops(glcm, "contrast")[0][i])
@@ -81,14 +75,11 @@ def extract_features_from_bgr(img_bgr):
     if np.sum(mask) > 200:
         lbp = local_binary_pattern(gray_masked, P=8, R=1, method="uniform")
         lbp_masked = lbp[mask > 0]
-
         hist, _ = np.histogram(lbp_masked, bins=10, range=(0, 10), density=True)
-
         lbp_mean = float(np.mean(lbp_masked))
         lbp_std = float(np.std(lbp_masked))
         lbp_entropy = float(-np.sum(hist * np.log2(hist + 1e-10)))
         lbp_energy = float(np.sum(hist ** 2))
-
         hist_vals = hist[:6].tolist()
     else:
         lbp_mean = lbp_std = lbp_entropy = lbp_energy = 0.0
@@ -101,7 +92,6 @@ def extract_features_from_bgr(img_bgr):
         "aspect_ratio": aspect_ratio,
         "solidity": solidity,
         "extent": extent,
-
         "mean_h": mean_h,
         "std_h": std_h,
         "mean_s": mean_s,
@@ -109,9 +99,7 @@ def extract_features_from_bgr(img_bgr):
         "mean_v": mean_v,
         "std_v": std_v,
         "dark_pct": dark_pct,
-
         **glcm_features,
-
         "lbp_mean": lbp_mean,
         "lbp_std": lbp_std,
         "lbp_entropy": lbp_entropy,
@@ -123,5 +111,4 @@ def extract_features_from_bgr(img_bgr):
         "lbp_hist_4": hist_vals[4],
         "lbp_hist_5": hist_vals[5],
     }
-
     return features_dict

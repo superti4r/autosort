@@ -10,14 +10,12 @@ def preprocess_mushroom_image_bgr(
     upper_hsv=np.array([25, 255, 255]),
     min_area=500
 ):
-    
     if img_bgr is None:
         raise ValueError("img_bgr = None")
 
     img_resized = cv2.resize(img_bgr, target_size)
     img_bright = cv2.convertScaleAbs(img_resized, alpha=alpha, beta=beta)
     img_hsv = cv2.cvtColor(img_bright, cv2.COLOR_BGR2HSV)
-
     mask = cv2.inRange(img_hsv, lower_hsv, upper_hsv)
 
     kernel = np.ones((5, 5), np.uint8)

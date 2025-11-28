@@ -52,5 +52,12 @@ def get_current_prediction():
         return orchestrator.last_prediction_result
     return {"message": "Waiting for prediction..."}
 
+@app.post("/control/motor/{command}")
+def control_motor(command: str):
+    if command.lower() in ["start", "stop"]:
+        mqtt_client.publish_motor_control(command)
+        return {"status": "success", "command": command}
+    return {"status": "error", "message": "Invalid command"}
+
 if __name__ == "__main__":
     uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)
