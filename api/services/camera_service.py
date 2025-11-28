@@ -16,20 +16,27 @@ class VideoCamera:
         if self.running:
             return
 
-        print(f"--> Starting Camera Index: {settings.CAMERA_INDEX}")
+        print(f"--> Starting Camera Index: {settings.CAMERA_INDEX} (Logitech C920 Optimized)")
+        
         self.video = cv2.VideoCapture(settings.CAMERA_INDEX, cv2.CAP_V4L2)
+        
         self.video.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
-        self.video.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+        self.video.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+        self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+        self.video.set(cv2.CAP_PROP_FPS, 30)
+        self.video.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
         if self.video.isOpened():
             self.grabbed, self.frame = self.video.read()
             if not self.grabbed:
-                print("!!! WARNING: Camera opened but failed to grab first frame.")
+                print("!!! WARNING: Kamera terbuka tapi gagal menangkap frame awal.")
             else:
-                print("--> Camera started successfully.")
+                actual_w = self.video.get(cv2.CAP_PROP_FRAME_WIDTH)
+                actual_h = self.video.get(cv2.CAP_PROP_FRAME_HEIGHT)
+                actual_fps = self.video.get(cv2.CAP_PROP_FPS)
+                print(f"--> Camera Started. Resolution: {int(actual_w)}x{int(actual_h)} @ {int(actual_fps)} FPS")
         else:
-            print("!!! ERROR: Could not open camera.")
+            print("!!! ERROR: Tidak bisa membuka kamera.")
 
         self.running = True
         self.thread = threading.Thread(target=self.update, args=())
@@ -50,7 +57,7 @@ class VideoCamera:
                         self.grabbed = grabbed
                         self.frame = frame
                 else:
-                    time.sleep(0.1)
+                    time.sleep(0.01)
             else:
                 time.sleep(0.1)
 
@@ -65,7 +72,7 @@ class VideoCamera:
         if frame is None:
             return None
         try:
-            ret, jpeg = cv2.imencode('.jpg', frame)
+            ret, jpeg = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
             return jpeg.tobytes()
         except Exception:
             return None
