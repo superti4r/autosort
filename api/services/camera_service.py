@@ -16,14 +16,14 @@ class VideoCamera:
         if self.running:
             return
 
-        print(f"--> Starting Camera Index: {settings.CAMERA_INDEX} (Performance Mode)")
+        print(f"--> Starting Camera Index: {settings.CAMERA_INDEX} (Sports Mode: 720p 60FPS)")
         
         self.video = cv2.VideoCapture(settings.CAMERA_INDEX, cv2.CAP_V4L2)
         
         self.video.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
         self.video.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
         self.video.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-        self.video.set(cv2.CAP_PROP_FPS, 30)
+        self.video.set(cv2.CAP_PROP_FPS, 60)
         self.video.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
         if self.video.isOpened():
@@ -57,7 +57,7 @@ class VideoCamera:
                         self.grabbed = grabbed
                         self.frame = frame
                 else:
-                    time.sleep(0.01)
+                    time.sleep(0.005)
             else:
                 time.sleep(0.1)
 
@@ -72,7 +72,7 @@ class VideoCamera:
         if frame is None:
             return None
         try:
-            ret, jpeg = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 60])
+            ret, jpeg = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 50])
             return jpeg.tobytes()
         except Exception:
             return None
