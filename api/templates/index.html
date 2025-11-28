@@ -1,129 +1,364 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }} - Mushroom Grading</title>
-    <!-- Tailwind CSS via CDN -->
+    <title>AutoSort AI Dashboard</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome untuk Ikon -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <!-- Chart.js untuk Grafik -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <style>
-        /* Animasi kedip untuk status recording */
-        .blink { animation: blinker 1.5s linear infinite; }
-        @keyframes blinker { 50% { opacity: 0; } }
+        :root {
+            /* Shadcn-like Color Palette (Soft & Modern) */
+            --background: 222.2 84% 4.9%;
+            --foreground: 210 40% 98%;
+            --card: 222.2 84% 4.9%;
+            --card-foreground: 210 40% 98%;
+            --popover: 222.2 84% 4.9%;
+            --popover-foreground: 210 40% 98%;
+            --primary: 217.2 91.2% 59.8%;
+            --primary-foreground: 222.2 47.4% 11.2%;
+            --secondary: 217.2 32.6% 17.5%;
+            --secondary-foreground: 210 40% 98%;
+            --muted: 217.2 32.6% 17.5%;
+            --muted-foreground: 215 20.2% 65.1%;
+            --accent: 217.2 32.6% 17.5%;
+            --accent-foreground: 210 40% 98%;
+            --destructive: 0 62.8% 30.6%;
+            --destructive-foreground: 210 40% 98%;
+            --border: 217.2 32.6% 17.5%;
+            --input: 217.2 32.6% 17.5%;
+            --ring: 224.3 76.3% 48%;
+            --radius: 0.75rem;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: hsl(var(--secondary)); }
+        ::-webkit-scrollbar-thumb { background: hsl(var(--muted-foreground)); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: hsl(var(--primary)); }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .animate-pulse-slow { animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
     </style>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        border: "hsl(var(--border))",
+                        input: "hsl(var(--input))",
+                        ring: "hsl(var(--ring))",
+                        background: "hsl(var(--background))",
+                        foreground: "hsl(var(--foreground))",
+                        primary: {
+                            DEFAULT: "hsl(var(--primary))",
+                            foreground: "hsl(var(--primary-foreground))",
+                        },
+                        secondary: {
+                            DEFAULT: "hsl(var(--secondary))",
+                            foreground: "hsl(var(--secondary-foreground))",
+                        },
+                        destructive: {
+                            DEFAULT: "hsl(var(--destructive))",
+                            foreground: "hsl(var(--destructive-foreground))",
+                        },
+                        muted: {
+                            DEFAULT: "hsl(var(--muted))",
+                            foreground: "hsl(var(--muted-foreground))",
+                        },
+                        accent: {
+                            DEFAULT: "hsl(var(--accent))",
+                            foreground: "hsl(var(--accent-foreground))",
+                        },
+                        card: {
+                            DEFAULT: "hsl(var(--card))",
+                            foreground: "hsl(var(--card-foreground))",
+                        },
+                    },
+                    borderRadius: {
+                        lg: "var(--radius)",
+                        md: "calc(var(--radius) - 2px)",
+                        sm: "calc(var(--radius) - 4px)",
+                    },
+                },
+            },
+        }
+    </script>
 </head>
-<body class="bg-gray-900 text-white min-h-screen font-sans">
+<body class="min-h-screen flex flex-col selection:bg-primary selection:text-primary-foreground">
 
     <!-- Navbar -->
-    <nav class="bg-gray-800 border-b border-gray-700 shadow-lg">
+    <nav class="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
+            <div class="flex h-16 items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-robot text-green-400 text-2xl"></i>
-                    <h1 class="text-xl font-bold tracking-wider">AutoSort <span class="text-green-400">System</span></h1>
+                    <div class="bg-primary/20 p-2 rounded-lg">
+                        <i class="fa-solid fa-layer-group text-primary text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-bold tracking-tight">AutoSort<span class="text-primary">.AI</span></h1>
+                        <p class="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Vision Control System</p>
+                    </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <span class="h-3 w-3 rounded-full bg-green-500 blink"></span>
-                    <span class="text-sm text-gray-300">System Online</span>
+                <div class="flex items-center gap-4">
+                    <div class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary border border-border">
+                        <span class="relative flex h-2.5 w-2.5">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                        </span>
+                        <span class="text-xs font-medium text-emerald-500">System Active</span>
+                    </div>
+                    <div class="h-8 w-8 rounded-full bg-secondary flex items-center justify-center border border-border cursor-pointer hover:bg-accent transition-colors">
+                        <i class="fa-regular fa-bell text-muted-foreground text-sm"></i>
+                    </div>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-6 sm:px-6 lg:px-8">
         
-        <!-- Grid Layout -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Header Section -->
+        <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h2 class="text-2xl font-bold tracking-tight">Dashboard Overview</h2>
+                <p class="text-muted-foreground text-sm">Monitor real-time classification and device telemetry.</p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="controlMotor('start')" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 h-9 px-4 py-2 gap-2">
+                    <i class="fa-solid fa-play text-xs"></i> Start Motor
+                </button>
+                <button onclick="controlMotor('stop')" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-transparent shadow-sm hover:bg-destructive hover:text-destructive-foreground hover:border-destructive h-9 px-4 py-2 gap-2 group">
+                    <i class="fa-solid fa-square text-xs text-destructive group-hover:text-white transition-colors"></i> Stop
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
-            <!-- KOLOM KIRI: Video Feed (Lebar 2/3 di layar besar) -->
-            <div class="lg:col-span-2 space-y-6">
-                <!-- Video Card -->
-                <div class="bg-gray-800 rounded-xl overflow-hidden shadow-xl border border-gray-700 relative group">
-                    <div class="absolute top-4 left-4 bg-black/50 px-3 py-1 rounded text-xs font-mono text-red-400 flex items-center gap-2">
-                        <i class="fa-solid fa-circle text-[8px] blink"></i> LIVE CAM
+            <!-- LEFT COLUMN: Live Feed & Quick Stats (8/12) -->
+            <div class="lg:col-span-8 space-y-6">
+                <!-- Video Feed Card -->
+                <div class="rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden relative group">
+                    <div class="p-0">
+                        <div class="relative aspect-video bg-black/40 flex items-center justify-center overflow-hidden">
+                            <!-- Live Indicator Overlay -->
+                            <div class="absolute top-4 left-4 z-20 flex items-center gap-2 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10">
+                                <span class="animate-pulse-slow h-2 w-2 rounded-full bg-red-500"></span>
+                                <span class="text-[10px] font-bold tracking-wider text-white">LIVE FEED</span>
+                            </div>
+                            
+                            <!-- Grid Overlay (Aesthetic) -->
+                            <div class="absolute inset-0 z-10 pointer-events-none border-[0.5px] border-white/5 opacity-20 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+                            
+                            <!-- Video Image -->
+                            <img src="/video_feed" alt="Camera Stream" class="w-full h-full object-cover z-0">
+                        </div>
                     </div>
-                    <!-- Image Streaming dari Endpoint FastAPI -->
-                    <img src="/video_feed" alt="Live Stream" class="w-full h-auto object-cover min-h-[300px] bg-black">
+                    <!-- Status Bar Bawah Video -->
+                    <div class="px-6 py-4 border-t border-border bg-card/50 flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-camera text-muted-foreground text-xs"></i>
+                            <span class="text-xs text-muted-foreground font-mono">CAM_01 • 1280x720 • 60FPS</span>
+                        </div>
+                        <div id="motor-status" class="text-xs font-medium text-muted-foreground transition-colors">
+                            Ready to operate
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Kontrol Motor Manual -->
-                <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg">
-                    <h2 class="text-lg font-semibold mb-4 text-gray-200 border-b border-gray-700 pb-2">
-                        <i class="fa-solid fa-sliders mr-2"></i>Kontrol Conveyor
-                    </h2>
-                    <div class="flex gap-4">
-                        <button onclick="controlMotor('start')" class="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-bold py-4 px-6 rounded-lg shadow-lg transform transition hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-play"></i> START MOTOR
-                        </button>
-                        <button onclick="controlMotor('stop')" class="flex-1 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-bold py-4 px-6 rounded-lg shadow-lg transform transition hover:scale-105 active:scale-95 flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-stop"></i> STOP MOTOR
-                        </button>
+                <!-- Charts Section -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Chart Distribusi -->
+                    <div class="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-6">
+                        <h3 class="font-semibold leading-none tracking-tight mb-4 text-sm text-muted-foreground uppercase">Grade Distribution</h3>
+                        <div class="relative h-48 w-full">
+                            <canvas id="gradeChart"></canvas>
+                        </div>
                     </div>
-                    <div id="motor-status" class="mt-3 text-center text-sm text-gray-400 italic">Menunggu perintah...</div>
+                    
+                    <!-- Chart Aktivitas (Dummy/Simple) -->
+                    <div class="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-6">
+                        <h3 class="font-semibold leading-none tracking-tight mb-4 text-sm text-muted-foreground uppercase">System Activity</h3>
+                        <div class="relative h-48 w-full">
+                            <canvas id="activityChart"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- KOLOM KANAN: Statistik & Telemetry (Lebar 1/3) -->
-            <div class="space-y-6">
+            <!-- RIGHT COLUMN: Prediction & Logs (4/12) -->
+            <div class="lg:col-span-4 space-y-6">
                 
-                <!-- Hasil Prediksi Terakhir -->
-                <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg text-center">
-                    <h2 class="text-gray-400 text-sm uppercase font-bold tracking-wider mb-2">Terdeteksi Terakhir</h2>
-                    <div id="prediction-badge" class="inline-block px-4 py-1 rounded-full bg-gray-700 text-gray-300 text-xs font-mono mb-4">
-                        Waiting...
-                    </div>
+                <!-- Main Result Card -->
+                <div class="rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden relative">
+                    <!-- Background Glow Effect -->
+                    <div id="glow-bg" class="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-[60px] rounded-full transition-colors duration-500"></div>
                     
-                    <div class="flex justify-center items-center">
-                        <div id="grade-display" class="text-8xl font-black text-gray-600 transition-all duration-300">
-                            -
+                    <div class="p-6 relative z-10">
+                        <div class="flex items-center justify-between mb-8">
+                            <h3 class="font-semibold text-lg">Last Detection</h3>
+                            <span id="timestamp-badge" class="text-[10px] font-mono text-muted-foreground border border-border px-2 py-1 rounded">--:--:--</span>
                         </div>
-                    </div>
-                    
-                    <p id="confidence-display" class="mt-4 text-gray-400 text-sm">Confidence: 0%</p>
-                </div>
-
-                <!-- Statistik Telemetry (Dari ESP32) -->
-                <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg">
-                    <h2 class="text-lg font-semibold mb-4 text-gray-200 border-b border-gray-700 pb-2">
-                        <i class="fa-solid fa-microchip mr-2"></i>Sensor Data (ESP32)
-                    </h2>
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center bg-gray-700/50 p-3 rounded lg:px-4">
-                            <span class="text-gray-400"><i class="fa-solid fa-box mr-2"></i>Total Sortir</span>
-                            <span id="stat-total" class="font-mono font-bold text-white">0</span>
-                        </div>
-                        <div class="flex justify-between items-center bg-gray-700/50 p-3 rounded lg:px-4">
-                            <span class="text-gray-400"><i class="fa-solid fa-check-circle mr-2 text-green-400"></i>Grade A</span>
-                            <span id="stat-a" class="font-mono font-bold text-green-400">0</span>
-                        </div>
-                        <div class="flex justify-between items-center bg-gray-700/50 p-3 rounded lg:px-4">
-                            <span class="text-gray-400"><i class="fa-solid fa-exclamation-circle mr-2 text-yellow-400"></i>Grade B</span>
-                            <span id="stat-b" class="font-mono font-bold text-yellow-400">0</span>
-                        </div>
-                        <div class="flex justify-between items-center bg-gray-700/50 p-3 rounded lg:px-4">
-                            <span class="text-gray-400"><i class="fa-solid fa-times-circle mr-2 text-red-400"></i>Grade C</span>
-                            <span id="stat-c" class="font-mono font-bold text-red-400">0</span>
+                        
+                        <div class="flex flex-col items-center justify-center py-6">
+                            <div id="grade-circle" class="w-32 h-32 rounded-full border-4 border-border flex items-center justify-center mb-4 transition-all duration-500 shadow-[0_0_30px_rgba(0,0,0,0.2)]">
+                                <span id="grade-display" class="text-6xl font-black text-muted-foreground transition-all duration-300">-</span>
+                            </div>
+                            <div class="space-y-1 text-center">
+                                <div class="text-xs text-muted-foreground uppercase tracking-widest font-semibold">Confidence Score</div>
+                                <div id="confidence-bar-container" class="w-48 h-2 bg-secondary rounded-full overflow-hidden mt-2">
+                                    <div id="confidence-bar" class="h-full bg-primary w-0 transition-all duration-500"></div>
+                                </div>
+                                <div id="confidence-display" class="text-sm font-mono text-foreground mt-1">0%</div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Status System -->
-                <div class="bg-gray-800 p-4 rounded-xl border border-gray-700 text-xs font-mono text-gray-500">
-                    <p>MQTT Broker: Connected</p>
-                    <p>Database: Connected</p>
-                    <p>Model: KNN Loaded</p>
+                <!-- Telemetry Stats List -->
+                <div class="rounded-xl border border-border bg-card text-card-foreground shadow-sm">
+                    <div class="p-6">
+                        <h3 class="font-semibold leading-none tracking-tight mb-5 text-sm">Telemetry Summary</h3>
+                        <div class="space-y-4">
+                            <!-- Stat Item Total -->
+                            <div class="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border/50">
+                                <div class="flex items-center gap-3">
+                                    <div class="h-8 w-8 rounded bg-primary/20 flex items-center justify-center text-primary">
+                                        <i class="fa-solid fa-boxes-stacked text-xs"></i>
+                                    </div>
+                                    <div class="text-sm font-medium">Total Processed</div>
+                                </div>
+                                <div id="stat-total" class="text-lg font-bold font-mono">0</div>
+                            </div>
+
+                            <!-- Stat Item A -->
+                            <div class="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border/50">
+                                <div class="flex items-center gap-3">
+                                    <div class="h-8 w-8 rounded bg-emerald-500/20 flex items-center justify-center text-emerald-500">
+                                        <i class="fa-solid fa-check text-xs"></i>
+                                    </div>
+                                    <div class="text-sm font-medium">Grade A</div>
+                                </div>
+                                <div id="stat-a" class="text-lg font-bold font-mono text-emerald-500">0</div>
+                            </div>
+
+                            <!-- Stat Item B -->
+                            <div class="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border/50">
+                                <div class="flex items-center gap-3">
+                                    <div class="h-8 w-8 rounded bg-yellow-500/20 flex items-center justify-center text-yellow-500">
+                                        <i class="fa-solid fa-triangle-exclamation text-xs"></i>
+                                    </div>
+                                    <div class="text-sm font-medium">Grade B</div>
+                                </div>
+                                <div id="stat-b" class="text-lg font-bold font-mono text-yellow-500">0</div>
+                            </div>
+
+                            <!-- Stat Item C -->
+                            <div class="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border/50">
+                                <div class="flex items-center gap-3">
+                                    <div class="h-8 w-8 rounded bg-red-500/20 flex items-center justify-center text-red-500">
+                                        <i class="fa-solid fa-xmark text-xs"></i>
+                                    </div>
+                                    <div class="text-sm font-medium">Grade C</div>
+                                </div>
+                                <div id="stat-c" class="text-lg font-bold font-mono text-red-500">0</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
             </div>
         </div>
     </main>
 
-    <!-- Script Javascript untuk Logika Frontend -->
     <script>
-        // Fungsi Update Prediksi
+        // --- 1. SETUP CHARTS ---
+        const ctxGrade = document.getElementById('gradeChart').getContext('2d');
+        const gradeChart = new Chart(ctxGrade, {
+            type: 'bar',
+            data: {
+                labels: ['Grade A', 'Grade B', 'Grade C'],
+                datasets: [{
+                    label: 'Count',
+                    data: [0, 0, 0],
+                    backgroundColor: [
+                        'rgba(16, 185, 129, 0.7)', // Emerald
+                        'rgba(234, 179, 8, 0.7)',  // Yellow
+                        'rgba(239, 68, 68, 0.7)'   // Red
+                    ],
+                    borderColor: [
+                        'rgba(16, 185, 129, 1)',
+                        'rgba(234, 179, 8, 1)',
+                        'rgba(239, 68, 68, 1)'
+                    ],
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        const ctxActivity = document.getElementById('activityChart').getContext('2d');
+        // Dummy data for activity visualization
+        const activityChart = new Chart(ctxActivity, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: 10}, (_, i) => i + 1),
+                datasets: [{
+                    label: 'Latency (ms)',
+                    data: [120, 135, 125, 140, 130, 128, 145, 132, 129, 138],
+                    borderColor: 'hsl(217.2, 91.2%, 59.8%)',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { display: false },
+                    x: { display: false }
+                },
+                animation: { duration: 1000 }
+            }
+        });
+
+        // --- 2. LOGIC PREDICTION ---
         async function fetchPrediction() {
             try {
                 const response = await fetch('/prediction/current');
@@ -131,82 +366,96 @@
                 
                 const gradeDisplay = document.getElementById('grade-display');
                 const confDisplay = document.getElementById('confidence-display');
-                const badge = document.getElementById('prediction-badge');
+                const confBar = document.getElementById('confidence-bar');
+                const gradeCircle = document.getElementById('grade-circle');
+                const glowBg = document.getElementById('glow-bg');
+                const tsBadge = document.getElementById('timestamp-badge');
 
                 if (data.label && data.label !== "None") {
                     const grade = data.label;
                     gradeDisplay.innerText = grade;
                     
-                    // Hitung persentase confidence tertinggi
                     let maxConf = 0;
-                    if (data.probs) {
-                        maxConf = (data.probs[grade] * 100).toFixed(1);
-                    }
-                    confDisplay.innerText = `Confidence: ${maxConf}%`;
-                    badge.innerText = `Detected ${new Date().toLocaleTimeString()}`;
+                    if (data.probs) maxConf = (data.probs[grade] * 100).toFixed(1);
+                    
+                    confDisplay.innerText = `${maxConf}%`;
+                    confBar.style.width = `${maxConf}%`;
+                    tsBadge.innerText = new Date().toLocaleTimeString();
 
-                    // Ubah Warna Berdasarkan Grade
+                    // Dynamic Styling
                     if (grade === 'A') {
-                        gradeDisplay.className = "text-8xl font-black text-green-500 drop-shadow-[0_0_15px_rgba(34,197,94,0.5)] transition-all duration-300";
-                        badge.className = "inline-block px-4 py-1 rounded-full bg-green-900/50 text-green-300 text-xs font-mono mb-4 border border-green-700";
+                        gradeDisplay.className = "text-6xl font-black text-emerald-500";
+                        gradeCircle.className = "w-32 h-32 rounded-full border-4 border-emerald-500/50 flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(16,185,129,0.3)] bg-emerald-500/10";
+                        confBar.className = "h-full bg-emerald-500 transition-all duration-500";
+                        glowBg.className = "absolute top-0 right-0 w-32 h-32 bg-emerald-500/20 blur-[60px] rounded-full transition-colors duration-500";
                     } else if (grade === 'B') {
-                        gradeDisplay.className = "text-8xl font-black text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)] transition-all duration-300";
-                        badge.className = "inline-block px-4 py-1 rounded-full bg-yellow-900/50 text-yellow-300 text-xs font-mono mb-4 border border-yellow-700";
+                        gradeDisplay.className = "text-6xl font-black text-yellow-500";
+                        gradeCircle.className = "w-32 h-32 rounded-full border-4 border-yellow-500/50 flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(234,179,8,0.3)] bg-yellow-500/10";
+                        confBar.className = "h-full bg-yellow-500 transition-all duration-500";
+                        glowBg.className = "absolute top-0 right-0 w-32 h-32 bg-yellow-500/20 blur-[60px] rounded-full transition-colors duration-500";
                     } else {
-                        gradeDisplay.className = "text-8xl font-black text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.5)] transition-all duration-300";
-                        badge.className = "inline-block px-4 py-1 rounded-full bg-red-900/50 text-red-300 text-xs font-mono mb-4 border border-red-700";
+                        gradeDisplay.className = "text-6xl font-black text-red-500";
+                        gradeCircle.className = "w-32 h-32 rounded-full border-4 border-red-500/50 flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(239,68,68,0.3)] bg-red-500/10";
+                        confBar.className = "h-full bg-red-500 transition-all duration-500";
+                        glowBg.className = "absolute top-0 right-0 w-32 h-32 bg-red-500/20 blur-[60px] rounded-full transition-colors duration-500";
                     }
                 }
-            } catch (error) {
-                console.error("Gagal ambil prediksi:", error);
-            }
+            } catch (error) { console.error("API Error:", error); }
         }
 
-        // Fungsi Update Telemetry dari ESP32
+        // --- 3. LOGIC TELEMETRY ---
         async function fetchTelemetry() {
             try {
                 const response = await fetch('/telemetry');
                 const data = await response.json();
-
-                // Pastikan key JSON sesuai dengan yang dikirim ESP32
+                
                 if (data) {
+                    // Update Text Stats
                     if(data.number !== undefined) document.getElementById('stat-total').innerText = data.number;
                     if(data.a_count !== undefined) document.getElementById('stat-a').innerText = data.a_count;
                     if(data.b_count !== undefined) document.getElementById('stat-b').innerText = data.b_count;
                     if(data.c_count !== undefined) document.getElementById('stat-c').innerText = data.c_count;
+
+                    // Update Chart Data
+                    if (gradeChart && data.a_count !== undefined) {
+                        gradeChart.data.datasets[0].data = [data.a_count, data.b_count, data.c_count];
+                        gradeChart.update();
+                    }
+
+                    // Simulated Activity Chart Update (Just visual candy)
+                    const newData = Math.floor(Math.random() * (150 - 100 + 1) + 100);
+                    activityChart.data.datasets[0].data.push(newData);
+                    activityChart.data.datasets[0].data.shift();
+                    activityChart.update();
                 }
-            } catch (error) {
-                console.error("Gagal ambil telemetry:", error);
-            }
+            } catch (error) { console.error(error); }
         }
 
-        // Fungsi Kontrol Motor
+        // --- 4. MOTOR CONTROL ---
         async function controlMotor(action) {
-            const statusText = document.getElementById('motor-status');
-            statusText.innerText = "Mengirim perintah...";
-            statusText.className = "mt-3 text-center text-sm text-yellow-400 italic";
-
+            const statusEl = document.getElementById('motor-status');
+            statusEl.innerText = "Sending command...";
+            statusEl.className = "text-xs font-medium text-yellow-500 animate-pulse";
+            
             try {
                 const response = await fetch(`/control/motor/${action}`, { method: 'POST' });
                 const result = await response.json();
-                
                 if (result.status === 'success') {
-                    statusText.innerText = `Perintah sukses: ${action.toUpperCase()}`;
-                    statusText.className = "mt-3 text-center text-sm text-green-400 italic font-bold";
+                    statusEl.innerText = `System ${action === 'start' ? 'Running' : 'Stopped'}`;
+                    statusEl.className = action === 'start' ? "text-xs font-medium text-emerald-500" : "text-xs font-medium text-red-500";
                 } else {
-                    statusText.innerText = "Gagal mengirim perintah";
-                    statusText.className = "mt-3 text-center text-sm text-red-400 italic";
+                    statusEl.innerText = "Command Failed";
+                    statusEl.className = "text-xs font-medium text-destructive";
                 }
             } catch (error) {
-                statusText.innerText = "Error koneksi API";
-                statusText.className = "mt-3 text-center text-sm text-red-400 italic";
+                statusEl.innerText = "Connection Error";
+                statusEl.className = "text-xs font-medium text-destructive";
             }
         }
 
-        // Jalankan Interval Fetching Data
-        setInterval(fetchPrediction, 1000); // Update prediksi tiap 1 detik
-        setInterval(fetchTelemetry, 2000);  // Update telemetry tiap 2 detik
-
+        // Init Loops
+        setInterval(fetchPrediction, 1000);
+        setInterval(fetchTelemetry, 2000);
     </script>
 </body>
 </html>
