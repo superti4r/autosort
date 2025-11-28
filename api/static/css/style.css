@@ -1,0 +1,39 @@
+:root {
+    --radius: 0.75rem;
+    --background: oklch(0.97 0.02 89);     
+    --foreground: oklch(0.28 0.05 45);
+    --card: oklch(1 0 0); 
+    --card-foreground: oklch(0.28 0.05 45);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.28 0.05 45);
+    --primary: oklch(0.35 0.06 45); 
+    --primary-foreground: oklch(0.97 0.02 89);
+    --secondary: oklch(0.94 0.03 89);
+    --secondary-foreground: oklch(0.35 0.06 45);
+    --muted: oklch(0.94 0.03 89);
+    --muted-foreground: oklch(0.55 0.04 50);
+    --accent: oklch(0.92 0.03 89);
+    --accent-foreground: oklch(0.35 0.06 45);
+    --destructive: oklch(0.65 0.15 30);
+    --destructive-foreground: oklch(0.97 0.02 89);
+    --border: oklch(0.90 0.03 89);
+    --input: oklch(0.90 0.03 89);
+    --ring: oklch(0.35 0.06 45);
+    --chart-success: oklch(0.65 0.15 140);
+    --chart-warning: oklch(0.75 0.14 75);
+    --chart-danger: oklch(0.65 0.15 30);
+}
+
+body {
+    font-family: 'Geist', sans-serif;
+    background-color: var(--background);
+    color: var(--foreground);
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: oklch(0.85 0.03 89); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+.animate-pulse-slow { animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }

@@ -1,533 +1,163 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AutoSort AI Dashboard</title>
-    
-    <!-- Tailwind CSS (CDN) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <!-- Google Fonts: Geist Sans & Mono (Modern) -->
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+{% extends "base.html" %}
 
-    <style>
-        /* --- TEMA WARNA (EARTH TONE / WARM STONE) --- */
-        :root {
-            --radius: 0.75rem;
+{% block content %}
+<div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+        <h2 class="text-2xl font-bold tracking-tight text-foreground">Dashboard Overview</h2>
+        <p class="text-muted-foreground text-sm mt-1">Pantau klasifikasi jamur & telemetri secara real-time.</p>
+    </div>
+    <div class="flex gap-3">
+        <button onclick="controlMotor('start')"
+            class="inline-flex items-center justify-center rounded-lg text-sm font-semibold transition-all bg-primary text-primary-foreground shadow-md hover:opacity-90 hover:shadow-lg h-10 px-5 py-2 gap-2 active:scale-95">
+            <i class="fa-solid fa-play text-xs"></i> Start System
+        </button>
+        <button onclick="controlMotor('stop')"
+            class="inline-flex items-center justify-center rounded-lg text-sm font-semibold transition-all border border-input bg-card text-foreground shadow-sm hover:bg-destructive hover:text-destructive-foreground hover:border-destructive h-10 px-5 py-2 gap-2 group active:scale-95">
+            <i class="fa-solid fa-stop text-xs text-destructive group-hover:text-white transition-colors"></i> Stop
+        </button>
+    </div>
+</div>
 
-            /* Background Utama: Krem/Beige Lembut (Warna tombol sebelumnya) */
-            --background: oklch(0.97 0.02 89); 
-            
-            /* Text Utama: Coklat Tua (Agar kontras & nyaman dibaca) */
-            --foreground: oklch(0.28 0.05 45);
-
-            /* Kartu/Panel: Putih hangat (Sedikit beda dari bg agar ada layer) */
-            --card: oklch(1 0 0); 
-            --card-foreground: oklch(0.28 0.05 45);
-
-            /* Popover/Tooltip */
-            --popover: oklch(1 0 0);
-            --popover-foreground: oklch(0.28 0.05 45);
-
-            /* Primary (Tombol & Aksen): Coklat Gelap/Kopi (Warna background sebelumnya) */
-            --primary: oklch(0.35 0.06 45); 
-            --primary-foreground: oklch(0.97 0.02 89); /* Teks di tombol jadi terang */
-
-            /* Secondary: Krem agak gelap untuk variasi */
-            --secondary: oklch(0.94 0.03 89);
-            --secondary-foreground: oklch(0.35 0.06 45);
-
-            /* Muted: Abu-abu hangat untuk teks sekunder */
-            --muted: oklch(0.94 0.03 89);
-            --muted-foreground: oklch(0.55 0.04 50);
-
-            /* Accent: Untuk hover */
-            --accent: oklch(0.92 0.03 89);
-            --accent-foreground: oklch(0.35 0.06 45);
-
-            /* Destructive: Merah Bata yang soft */
-            --destructive: oklch(0.65 0.15 30);
-            --destructive-foreground: oklch(0.97 0.02 89);
-
-            /* Border: Garis halus warna pasir */
-            --border: oklch(0.90 0.03 89);
-            --input: oklch(0.90 0.03 89);
-            --ring: oklch(0.35 0.06 45); /* Ring fokus warna coklat */
-
-            /* Semantic Colors (Soft) */
-            --chart-success: oklch(0.65 0.15 140); /* Hijau Daun */
-            --chart-warning: oklch(0.75 0.14 75);  /* Kuning Kunyit */
-            --chart-danger: oklch(0.65 0.15 30);   /* Merah Bata */
-        }
-
-        body {
-            font-family: 'Geist', sans-serif;
-            background-color: var(--background);
-            color: var(--foreground);
-        }
-
-        /* Custom Scrollbar (Brown Theme) */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: oklch(0.85 0.03 89); border-radius: 99px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
-
-        .animate-pulse-slow { animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
-    </style>
-
-    <script>
-        tailwind.config = {
-            // Hapus darkMode: 'class' agar default ke :root (Light Mode yang sudah kita kustom)
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Geist', 'sans-serif'],
-                        mono: ['Geist Mono', 'monospace'],
-                    },
-                    colors: {
-                        border: "var(--border)",
-                        input: "var(--input)",
-                        ring: "var(--ring)",
-                        background: "var(--background)",
-                        foreground: "var(--foreground)",
-                        primary: {
-                            DEFAULT: "var(--primary)",
-                            foreground: "var(--primary-foreground)",
-                        },
-                        secondary: {
-                            DEFAULT: "var(--secondary)",
-                            foreground: "var(--secondary-foreground)",
-                        },
-                        destructive: {
-                            DEFAULT: "var(--destructive)",
-                            foreground: "var(--destructive-foreground)",
-                        },
-                        muted: {
-                            DEFAULT: "var(--muted)",
-                            foreground: "var(--muted-foreground)",
-                        },
-                        accent: {
-                            DEFAULT: "var(--accent)",
-                            foreground: "var(--accent-foreground)",
-                        },
-                        card: {
-                            DEFAULT: "var(--card)",
-                            foreground: "var(--card-foreground)",
-                        },
-                    },
-                    borderRadius: {
-                        lg: "var(--radius)",
-                        md: "calc(var(--radius) - 2px)",
-                        sm: "calc(var(--radius) - 4px)",
-                    },
-                },
-            },
-        }
-    </script>
-</head>
-<body class="min-h-screen flex flex-col antialiased selection:bg-primary/20 selection:text-primary">
-
-    <!-- Navbar -->
-    <nav class="border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex h-16 items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="bg-primary p-2 rounded-lg shadow-sm">
-                        <i class="fa-solid fa-layer-group text-primary-foreground text-lg"></i>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div class="lg:col-span-8 space-y-6">
+        <div
+            class="rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden relative group">
+            <div class="p-1.5 bg-secondary/30">
+                <div
+                    class="relative aspect-video bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center border border-black/5 shadow-inner">
+                    <div
+                        class="absolute top-3 left-3 z-20 flex items-center gap-2 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full border border-black/5 shadow-sm">
+                        <span class="animate-pulse-slow h-1.5 w-1.5 rounded-full bg-red-500"></span>
+                        <span class="text-[10px] font-bold tracking-wider text-gray-800">LIVE FEED</span>
                     </div>
-                    <div>
-                        <h1 class="text-base font-bold tracking-tight text-foreground">AutoSort<span class="text-primary">.AI</span></h1>
-                        <p class="text-[10px] text-muted-foreground uppercase tracking-widest font-medium">Vision Control</p>
-                    </div>
+                    <img src="/video_feed" alt="Camera Stream"
+                        class="w-full h-full object-cover z-0 opacity-95 group-hover:opacity-100 transition-opacity">
                 </div>
+            </div>
+
+            <div class="px-5 py-3 border-t border-border bg-card flex justify-between items-center">
                 <div class="flex items-center gap-3">
-                    <div class="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-secondary border border-border shadow-sm">
-                        <span class="relative flex h-2 w-2">
-                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                          <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                        </span>
-                        <span class="text-xs font-bold text-primary">System Active</span>
+                    <div class="flex items-center gap-1.5 text-xs text-muted-foreground font-mono">
+                        <i class="fa-solid fa-video text-primary"></i>
+                        <span>CAM-01</span>
                     </div>
+                    <span class="text-border">|</span>
+                    <span class="text-xs text-muted-foreground font-mono">1280x720 • MJPG</span>
+                </div>
+                <div id="motor-status" class="text-xs font-medium text-muted-foreground/80 flex items-center gap-2">
+                    <span class="h-1.5 w-1.5 rounded-full bg-muted-foreground"></span> Standby
                 </div>
             </div>
         </div>
-    </nav>
 
-    <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-8 sm:px-6 lg:px-8">
-        
-        <!-- Header Controls -->
-        <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-                <h2 class="text-2xl font-bold tracking-tight text-foreground">Dashboard Overview</h2>
-                <p class="text-muted-foreground text-sm mt-1">Pantau klasifikasi jamur & telemetri secara real-time.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div
+                class="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-6 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-16 h-16 bg-secondary/50 rounded-bl-full -mr-8 -mt-8"></div>
+                <div class="flex items-center justify-between mb-6 relative z-10">
+                    <h3 class="font-semibold text-sm text-foreground">Grade Distribution</h3>
+                    <i class="fa-solid fa-chart-simple text-muted-foreground/50 text-sm"></i>
+                </div>
+                <div class="relative h-48 w-full">
+                    <canvas id="gradeChart"></canvas>
+                </div>
             </div>
-            <div class="flex gap-3">
-                <button onclick="controlMotor('start')" class="inline-flex items-center justify-center rounded-lg text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50 bg-primary text-primary-foreground shadow-md hover:opacity-90 hover:shadow-lg h-10 px-5 py-2 gap-2 active:scale-95">
-                    <i class="fa-solid fa-play text-xs"></i> Start System
-                </button>
-                <button onclick="controlMotor('stop')" class="inline-flex items-center justify-center rounded-lg text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50 border border-input bg-card text-foreground shadow-sm hover:bg-destructive hover:text-destructive-foreground hover:border-destructive h-10 px-5 py-2 gap-2 group active:scale-95">
-                    <i class="fa-solid fa-stop text-xs text-destructive group-hover:text-white transition-colors"></i> Stop
-                </button>
+            <div
+                class="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-6 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-16 h-16 bg-secondary/50 rounded-bl-full -mr-8 -mt-8"></div>
+                <div class="flex items-center justify-between mb-6 relative z-10">
+                    <h3 class="font-semibold text-sm text-foreground">Confidence Level</h3>
+                    <i class="fa-solid fa-activity text-muted-foreground/50 text-sm"></i>
+                </div>
+                <div class="relative h-48 w-full">
+                    <canvas id="activityChart"></canvas>
+                </div>
             </div>
         </div>
+    </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
-            <!-- LEFT COLUMN: Live Feed & Stats (8/12) -->
-            <div class="lg:col-span-8 space-y-6">
-                <!-- Video Feed Card -->
-                <div class="rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden relative group">
-                    <div class="p-1.5 bg-secondary/30">
-                        <div class="relative aspect-video bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center border border-black/5 shadow-inner">
-                            <!-- Live Indicator -->
-                            <div class="absolute top-3 left-3 z-20 flex items-center gap-2 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full border border-black/5 shadow-sm">
-                                <span class="animate-pulse-slow h-1.5 w-1.5 rounded-full bg-red-500"></span>
-                                <span class="text-[10px] font-bold tracking-wider text-gray-800">LIVE FEED</span>
+    <div class="lg:col-span-4 space-y-6">
+        <div
+            class="rounded-xl border border-border bg-card text-card-foreground shadow-lg overflow-hidden relative h-fit">
+            <div id="glow-bg"
+                class="absolute -top-10 -right-10 w-40 h-40 bg-secondary blur-[60px] rounded-full transition-all duration-700">
+            </div>
+
+            <div class="p-6 relative z-10">
+                <div class="flex items-center justify-between mb-8">
+                    <h3 class="font-bold text-sm text-foreground uppercase tracking-wider">Detection</h3>
+                    <span id="timestamp-badge"
+                        class="text-[10px] font-mono text-muted-foreground bg-secondary px-2 py-1 rounded border border-border/50">Waiting...</span>
+                </div>
+
+                <div class="flex flex-col items-center justify-center">
+                    <div id="grade-circle"
+                        class="w-40 h-40 rounded-full border-[8px] border-secondary bg-background flex items-center justify-center mb-6 transition-all duration-500 shadow-[inset_0_2px_10px_rgba(0,0,0,0.05)]">
+                        <span id="grade-display"
+                            class="text-7xl font-black text-muted-foreground transition-all duration-300 tracking-tighter opacity-50">-</span>
+                    </div>
+
+                    <div class="w-full space-y-2 px-4">
+                        <div class="flex justify-between text-xs font-semibold text-muted-foreground">
+                            <span>Accuracy</span>
+                            <span id="confidence-display">0%</span>
+                        </div>
+                        <div class="h-2.5 w-full bg-secondary rounded-full overflow-hidden border border-border/30">
+                            <div id="confidence-bar"
+                                class="h-full bg-primary/50 w-0 transition-all duration-500 ease-out rounded-full shadow-[0_0_10px_currentColor]">
                             </div>
-                            
-                            <!-- Grid Overlay (Subtle) -->
-                            <div class="absolute inset-0 z-10 pointer-events-none opacity-[0.05] bg-[linear-gradient(black_1px,transparent_1px),linear-gradient(90deg,black_1px,transparent_1px)] bg-[size:40px_40px]"></div>
-                            
-                            <!-- Video Stream -->
-                            <img src="/video_feed" alt="Camera Stream" class="w-full h-full object-cover z-0 opacity-95 group-hover:opacity-100 transition-opacity">
                         </div>
                     </div>
-                    
-                    <!-- Status Bar -->
-                    <div class="px-5 py-3 border-t border-border bg-card flex justify-between items-center">
+                </div>
+            </div>
+        </div>
+
+        <div class="rounded-xl border border-border bg-card text-card-foreground shadow-sm">
+            <div class="p-5">
+                <h3 class="font-bold text-sm text-foreground mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-server text-primary/70"></i> Telemetry Data
+                </h3>
+
+                <div class="space-y-3">
+                    <div
+                        class="flex items-center justify-between p-3.5 rounded-xl bg-primary text-primary-foreground shadow-md transition-transform hover:scale-[1.02]">
                         <div class="flex items-center gap-3">
-                            <div class="flex items-center gap-1.5 text-xs text-muted-foreground font-mono">
-                                <i class="fa-solid fa-video text-primary"></i>
-                                <span>CAM-01</span>
+                            <div
+                                class="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center text-white backdrop-blur-sm">
+                                <i class="fa-solid fa-cube text-xs"></i>
                             </div>
-                            <span class="text-border">|</span>
-                            <span class="text-xs text-muted-foreground font-mono">1280x720 • MJPG</span>
+                            <span class="text-sm font-semibold">Total Objects</span>
                         </div>
-                        <div id="motor-status" class="text-xs font-medium text-muted-foreground/80 flex items-center gap-2">
-                            <span class="h-1.5 w-1.5 rounded-full bg-muted-foreground"></span> Standby
+                        <span id="stat-total" class="text-xl font-bold font-mono tracking-tight">0</span>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2.5 mt-2">
+                        <div
+                            class="bg-secondary/30 p-3 rounded-xl border border-border hover:border-green-300/50 transition-colors text-center group">
+                            <div
+                                class="text-[10px] font-bold text-muted-foreground mb-1 group-hover:text-green-600 uppercase">
+                                Grade A</div>
+                            <div id="stat-a" class="text-2xl font-black text-[var(--chart-success)]">0</div>
+                        </div>
+                        <div
+                            class="bg-secondary/30 p-3 rounded-xl border border-border hover:border-yellow-300/50 transition-colors text-center group">
+                            <div
+                                class="text-[10px] font-bold text-muted-foreground mb-1 group-hover:text-yellow-600 uppercase">
+                                Grade B</div>
+                            <div id="stat-b" class="text-2xl font-black text-[var(--chart-warning)]">0</div>
+                        </div>
+                        <div
+                            class="bg-secondary/30 p-3 rounded-xl border border-border hover:border-red-300/50 transition-colors text-center group">
+                            <div
+                                class="text-[10px] font-bold text-muted-foreground mb-1 group-hover:text-red-600 uppercase">
+                                Grade C</div>
+                            <div id="stat-c" class="text-2xl font-black text-[var(--chart-danger)]">0</div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Charts Section -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Distribution Chart -->
-                    <div class="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-6 relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-16 h-16 bg-secondary/50 rounded-bl-full -mr-8 -mt-8"></div>
-                        <div class="flex items-center justify-between mb-6 relative z-10">
-                            <h3 class="font-semibold text-sm text-foreground">Grade Distribution</h3>
-                            <i class="fa-solid fa-chart-simple text-muted-foreground/50 text-sm"></i>
-                        </div>
-                        <div class="relative h-48 w-full">
-                            <canvas id="gradeChart"></canvas>
-                        </div>
-                    </div>
-                    
-                    <!-- Confidence Chart -->
-                    <div class="rounded-xl border border-border bg-card text-card-foreground shadow-sm p-6 relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-16 h-16 bg-secondary/50 rounded-bl-full -mr-8 -mt-8"></div>
-                        <div class="flex items-center justify-between mb-6 relative z-10">
-                            <h3 class="font-semibold text-sm text-foreground">Confidence Level</h3>
-                            <i class="fa-solid fa-activity text-muted-foreground/50 text-sm"></i>
-                        </div>
-                        <div class="relative h-48 w-full">
-                            <canvas id="activityChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- RIGHT COLUMN: Results & Telemetry (4/12) -->
-            <div class="lg:col-span-4 space-y-6">
-                
-                <!-- Main Detection Card -->
-                <div class="rounded-xl border border-border bg-card text-card-foreground shadow-lg overflow-hidden relative h-fit">
-                    <!-- Background Accent -->
-                    <div id="glow-bg" class="absolute -top-10 -right-10 w-40 h-40 bg-secondary blur-[60px] rounded-full transition-all duration-700"></div>
-                    
-                    <div class="p-6 relative z-10">
-                        <div class="flex items-center justify-between mb-8">
-                            <h3 class="font-bold text-sm text-foreground uppercase tracking-wider">Detection</h3>
-                            <span id="timestamp-badge" class="text-[10px] font-mono text-muted-foreground bg-secondary px-2 py-1 rounded border border-border/50">Waiting...</span>
-                        </div>
-                        
-                        <div class="flex flex-col items-center justify-center">
-                            <!-- Circle Indicator -->
-                            <div id="grade-circle" class="w-40 h-40 rounded-full border-[8px] border-secondary bg-background flex items-center justify-center mb-6 transition-all duration-500 shadow-[inset_0_2px_10px_rgba(0,0,0,0.05)]">
-                                <span id="grade-display" class="text-7xl font-black text-muted-foreground transition-all duration-300 tracking-tighter opacity-50">-</span>
-                            </div>
-                            
-                            <!-- Confidence Bar -->
-                            <div class="w-full space-y-2 px-4">
-                                <div class="flex justify-between text-xs font-semibold text-muted-foreground">
-                                    <span>Accuracy</span>
-                                    <span id="confidence-display">0%</span>
-                                </div>
-                                <div class="h-2.5 w-full bg-secondary rounded-full overflow-hidden border border-border/30">
-                                    <div id="confidence-bar" class="h-full bg-primary w-0 transition-all duration-500 ease-out rounded-full shadow-[0_0_10px_currentColor]"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Telemetry List -->
-                <div class="rounded-xl border border-border bg-card text-card-foreground shadow-sm">
-                    <div class="p-5">
-                        <h3 class="font-bold text-sm text-foreground mb-4 flex items-center gap-2">
-                            <i class="fa-solid fa-server text-primary/70"></i> Telemetry Data
-                        </h3>
-                        
-                        <div class="space-y-3">
-                            <!-- Total -->
-                            <div class="flex items-center justify-between p-3.5 rounded-xl bg-primary text-primary-foreground shadow-md transition-transform hover:scale-[1.02]">
-                                <div class="flex items-center gap-3">
-                                    <div class="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center text-white backdrop-blur-sm">
-                                        <i class="fa-solid fa-cube text-xs"></i>
-                                    </div>
-                                    <span class="text-sm font-semibold">Total Objects</span>
-                                </div>
-                                <span id="stat-total" class="text-xl font-bold font-mono tracking-tight">0</span>
-                            </div>
-
-                            <!-- Grades -->
-                            <div class="grid grid-cols-3 gap-2.5 mt-2">
-                                <!-- Grade A -->
-                                <div class="bg-secondary/30 p-3 rounded-xl border border-border hover:border-green-300/50 transition-colors text-center group">
-                                    <div class="text-[10px] font-bold text-muted-foreground mb-1 group-hover:text-green-600 uppercase">Grade A</div>
-                                    <div id="stat-a" class="text-2xl font-black text-[var(--chart-success)]">0</div>
-                                </div>
-                                <!-- Grade B -->
-                                <div class="bg-secondary/30 p-3 rounded-xl border border-border hover:border-yellow-300/50 transition-colors text-center group">
-                                    <div class="text-[10px] font-bold text-muted-foreground mb-1 group-hover:text-yellow-600 uppercase">Grade B</div>
-                                    <div id="stat-b" class="text-2xl font-black text-[var(--chart-warning)]">0</div>
-                                </div>
-                                <!-- Grade C -->
-                                <div class="bg-secondary/30 p-3 rounded-xl border border-border hover:border-red-300/50 transition-colors text-center group">
-                                    <div class="text-[10px] font-bold text-muted-foreground mb-1 group-hover:text-red-600 uppercase">Grade C</div>
-                                    <div id="stat-c" class="text-2xl font-black text-[var(--chart-danger)]">0</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
-    </main>
 
-    <script>
-        // --- AMBIL WARNA DARI CSS ---
-        // Karena kita di Light Mode, kita perlu mendefinisikan warna chart manual yang serasi
-        const colorPrimary = `oklch(0.35 0.06 45)`; // Coklat Tua
-        const colorGrid = `rgba(0, 0, 0, 0.05)`;
-        const colorText = `rgba(0, 0, 0, 0.5)`;
-
-        // --- CHART CONFIG ---
-        Chart.defaults.font.family = "'Geist Mono', monospace";
-        Chart.defaults.font.size = 10;
-        Chart.defaults.color = colorText;
-        
-        // 1. Grade Distribution Chart (Warna disesuaikan tema Soft)
-        const ctxGrade = document.getElementById('gradeChart').getContext('2d');
-        const gradeChart = new Chart(ctxGrade, {
-            type: 'bar',
-            data: {
-                labels: ['A', 'B', 'C'],
-                datasets: [{
-                    label: 'Count',
-                    data: [0, 0, 0],
-                    backgroundColor: [
-                        'rgba(101, 163, 13, 0.7)', // Soft Green
-                        'rgba(234, 179, 8, 0.7)',  // Soft Yellow
-                        'rgba(220, 38, 38, 0.7)'   // Soft Red
-                    ],
-                    borderRadius: 6,
-                    barPercentage: 0.6,
-                    borderSkipped: false
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { 
-                        beginAtZero: true, 
-                        grid: { color: colorGrid, borderDash: [4, 4] },
-                        border: { display: false }
-                    },
-                    x: { 
-                        grid: { display: false },
-                        border: { display: false }
-                    }
-                }
-            }
-        });
-
-        // 2. Real-time Confidence Chart (Line warna Coklat)
-        const ctxActivity = document.getElementById('activityChart').getContext('2d');
-        const activityChart = new Chart(ctxActivity, {
-            type: 'line',
-            data: {
-                labels: Array(25).fill(''), 
-                datasets: [{
-                    label: 'Confidence',
-                    data: Array(25).fill(0),
-                    // Warna Coklat Primary
-                    borderColor: 'rgb(80, 60, 50)', 
-                    backgroundColor: (context) => {
-                        const ctx = context.chart.ctx;
-                        const gradient = ctx.createLinearGradient(0, 0, 0, 200);
-                        gradient.addColorStop(0, 'rgba(80, 60, 50, 0.2)');
-                        gradient.addColorStop(1, 'rgba(80, 60, 50, 0)');
-                        return gradient;
-                    },
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 0,
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { 
-                        min: 0, 
-                        max: 100, 
-                        grid: { color: colorGrid, borderDash: [4, 4] },
-                        border: { display: false },
-                        ticks: { callback: v => v + '%' }
-                    },
-                    x: { display: false }
-                },
-                animation: false
-            }
-        });
-
-        function addDataToChart(chart, dataPoint) {
-            chart.data.datasets[0].data.push(dataPoint);
-            chart.data.datasets[0].data.shift();
-            chart.update();
-        }
-
-        // --- APP LOGIC ---
-        async function fetchPrediction() {
-            try {
-                const response = await fetch('/prediction/current');
-                const data = await response.json();
-                
-                const gradeDisplay = document.getElementById('grade-display');
-                const confDisplay = document.getElementById('confidence-display');
-                const confBar = document.getElementById('confidence-bar');
-                const gradeCircle = document.getElementById('grade-circle');
-                const glowBg = document.getElementById('glow-bg');
-                const tsBadge = document.getElementById('timestamp-badge');
-
-                let currentConf = 0;
-
-                if (data.label && data.label !== "None") {
-                    const grade = data.label;
-                    gradeDisplay.innerText = grade;
-                    
-                    if (data.probs) {
-                        currentConf = (data.probs[grade] * 100).toFixed(1);
-                    }
-                    
-                    confDisplay.innerText = `${currentConf}%`;
-                    confBar.style.width = `${currentConf}%`;
-                    tsBadge.innerText = new Date().toLocaleTimeString('id-ID', { hour12: false });
-
-                    // Styling Dinamis (Earth Tones)
-                    let activeColor = "";
-                    let activeBg = "";
-                    
-                    if (grade === 'A') {
-                        activeColor = "var(--chart-success)"; // Hijau
-                        activeBg = "rgba(101, 163, 13, 0.15)";
-                        gradeDisplay.style.color = activeColor;
-                        confBar.style.backgroundColor = activeColor;
-                        confBar.style.boxShadow = "0 0 10px rgba(101, 163, 13, 0.5)";
-                    } else if (grade === 'B') {
-                        activeColor = "var(--chart-warning)"; // Kuning
-                        activeBg = "rgba(234, 179, 8, 0.15)";
-                        gradeDisplay.style.color = activeColor;
-                        confBar.style.backgroundColor = activeColor;
-                        confBar.style.boxShadow = "0 0 10px rgba(234, 179, 8, 0.5)";
-                    } else {
-                        activeColor = "var(--chart-danger)"; // Merah
-                        activeBg = "rgba(220, 38, 38, 0.15)";
-                        gradeDisplay.style.color = activeColor;
-                        confBar.style.backgroundColor = activeColor;
-                        confBar.style.boxShadow = "0 0 10px rgba(220, 38, 38, 0.5)";
-                    }
-
-                    // Update Circle & Glow
-                    gradeCircle.style.borderColor = activeColor;
-                    gradeCircle.style.backgroundColor = activeBg;
-                    gradeDisplay.style.opacity = "1";
-                    glowBg.style.backgroundColor = activeColor;
-                    glowBg.style.opacity = "0.2";
-                    
-                } else {
-                    currentConf = 0; 
-                    // Reset visual kalau idle
-                    // gradeDisplay.style.opacity = "0.3";
-                    // glowBg.style.opacity = "0";
-                }
-
-                // Update Chart Heartbeat
-                addDataToChart(activityChart, currentConf);
-
-            } catch (error) { console.error(error); }
-        }
-
-        async function fetchTelemetry() {
-            try {
-                const response = await fetch('/telemetry');
-                const data = await response.json();
-                
-                if (data) {
-                    if(data.number !== undefined) document.getElementById('stat-total').innerText = data.number;
-                    if(data.a_count !== undefined) document.getElementById('stat-a').innerText = data.a_count;
-                    if(data.b_count !== undefined) document.getElementById('stat-b').innerText = data.b_count;
-                    if(data.c_count !== undefined) document.getElementById('stat-c').innerText = data.c_count;
-
-                    if (gradeChart && data.a_count !== undefined) {
-                        gradeChart.data.datasets[0].data = [data.a_count, data.b_count, data.c_count];
-                        gradeChart.update();
-                    }
-                }
-            } catch (error) { console.error(error); }
-        }
-
-        async function controlMotor(action) {
-            const statusEl = document.getElementById('motor-status');
-            statusEl.innerHTML = `<span class="animate-pulse text-primary font-bold">Sending...</span>`;
-            
-            try {
-                const response = await fetch(`/control/motor/${action}`, { method: 'POST' });
-                const result = await response.json();
-                if (result.status === 'success') {
-                    const colorClass = action === 'start' ? 'text-green-600' : 'text-red-600';
-                    statusEl.innerHTML = `<span class="h-1.5 w-1.5 rounded-full bg-current ${colorClass} inline-block mr-1"></span> <span class="${colorClass} font-bold">${action === 'start' ? 'Running' : 'Stopped'}</span>`;
-                } else {
-                    statusEl.innerHTML = `<span class="text-red-600 font-bold">Failed</span>`;
-                }
-            } catch (error) {
-                statusEl.innerHTML = `<span class="text-red-600 font-bold">Error</span>`;
-            }
-        }
-
-        setInterval(fetchPrediction, 800);
-        setInterval(fetchTelemetry, 2000);
-    </script>
-</body>
-</html>
+    </div>
+</div>
+{% endblock %}

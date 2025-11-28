@@ -8,7 +8,6 @@ from services.mqtt_service import mqtt_client
 from services.camera_service import camera
 from services.orchestrator import orchestrator
 import uvicorn
-import os
 
 app = FastAPI(title="Mushroom Grading IoT System")
 
@@ -18,6 +17,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 templates = Jinja2Templates(directory="templates")
 
@@ -34,7 +35,7 @@ def shutdown_event():
 
 @app.get("/", response_class=HTMLResponse)
 def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request, "title": "AutoSort Dashboard"})
+    return templates.TemplateResponse("index.html", {"request": request})
 
 def gen_frames():
     while True:
