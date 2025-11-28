@@ -21,11 +21,17 @@ class SystemOrchestrator:
             self.thread.start()
 
     def process_loop(self):
+        print("--> Orchestrator Started")
         while self.running:
-            frame = camera.get_frame()
-            if frame is not None:
+            with camera.lock:
+                frame_for_ml = camera.frame.copy() if camera.frame is not None else None
+
+            if frame_for_ml is not None:
                 try:
-                    preprocessed, _ = preprocess_mushroom_image_bgr(frame)
+                    camera.prediction_text = "Mendeteksi..."
+                    camera.prediction_color = (200, 200, 200)
+
+                    preprocessed, _ = preprocess_mushroom_image_bgr(frame_for_ml)
                     features = extract_features_from_bgr(preprocessed)
 
                     if features:
@@ -39,21 +45,21 @@ class SystemOrchestrator:
                         mqtt_client.publish_command(str(label))
 
                         db = SessionLocal()
-                        history = PredictionHistory(
-                            prediction=label,
-                            probability=probs
-                        )
+                        history = PredictionHistory(prediction=label, probability=probs)
                         db.add(history)
                         db.commit()
                         db.close()
                         
-                        print(f"Predicted: {label} -> Saved to DB & MQTT Sent.")
+                        camera.set_prediction_overlay(label, probs)
+                        print(f"--> Result: {label}")
                     else:
-                        print("No object detected/features extraction failed.")
+                        print("No object detected.")
+                        camera.prediction_text = "Tidak ada objek"
+                        camera.prediction_color = (0, 0, 255)
 
                 except Exception as e:
-                    print(f"Error in orchestration loop: {e}")
+                    print(f"Error Loop: {e}")
 
-            time.sleep(2)
+            time.sleep(10)
 
 orchestrator = SystemOrchestrator()
